@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Button, Modal, Form, Alert, Card } from 'react-bootstrap';
-import AdminNavbar from '../components/Navbar';
-import { getManagers, createManager, updateManager, deleteManager, assignManagerToBranch, getBranches, getBusinesses } from '../api/owner';
+import AdminNavbar from '../../components/Navbar';
+import { getManagers, createManager, updateManager, deleteManager, assignManagerToBranch, getBranches, getBusinesses } from '../../api/owner';
 
 function MyManagers() {
   const [managers, setManagers] = useState([]);

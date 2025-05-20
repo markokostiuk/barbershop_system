@@ -32,281 +32,87 @@ def check_branch_access(branch_id):
         return jsonify({'error': 'Access denied to this branch'}), 403
     return None
 
-@manager_bp.route('/branches', methods=['GET'])
+@manager_bp.route('/branchpositions', methods=['GET'])
 @manager_required
 def get_branches():
     admin = get_current_admin()
-    branches = Branch.query.filter(Branch.managers.any(id=admin.id)).all()
-    return jsonify([{
-        'id': b.id,
-        'name': b.name,
-        'locality': b.locality,
-        'address': b.address,
-        'phone_number': b.phone_number,
-        'start_work_hour': b.start_work_hour.isoformat(),
-        'end_work_hour': b.end_work_hour.isoformat()
-    } for b in branches])
-
-# -------------------- Position Routes --------------------
-@manager_bp.route('/branches/<int:branch_id>/positions', methods=['POST'])
-@manager_required
-def create_position(branch_id):
-    error = check_branch_access(branch_id)
-    if error:
-        return error
-
-    data = request.get_json()
-    try:
-        new_position = Position(
-            name=data['name'],
-            branch_id=branch_id
-        )
-        db.session.add(new_position)
-        db.session.commit()
-        return jsonify({'message': 'Position created', 'id': new_position.id}), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 400
-
-@manager_bp.route('/branches/<int:branch_id>/positions', methods=['GET'])
-@manager_required
-def get_positions(branch_id):
-    error = check_branch_access(branch_id)
-    if error:
-        return error
-    
-    positions = Position.query.filter_by(branch_id=branch_id).all()
+    positions = Position.query.filter_by(branch_id=admin.branch_id).all()
     return jsonify([{
         'id': p.id,
         'name': p.name,
-        'workers_count': len(p.workers)
     } for p in positions])
 
-@manager_bp.route('/positions/<int:position_id>', methods=['PUT'])
-@manager_required
-def update_position(position_id):
-    position = Position.query.get_or_404(position_id)
-    error = check_branch_access(position.branch_id)
-    if error:
-        return error
-    
-    data = request.get_json()
-    if 'name' in data:
-        if Position.query.filter_by(name=data['name'], branch_id=position.branch_id).first():
-            return jsonify({'error': 'Position name exists'}), 400
-        position.name = data['name']
-    
-    db.session.commit()
-    return jsonify({'message': 'Position updated'})
-
-@manager_bp.route('/positions/<int:position_id>', methods=['DELETE'])
-@manager_required
-def delete_position(position_id):
-    position = Position.query.get_or_404(position_id)
-    error = check_branch_access(position.branch_id)
-    if error:
-        return error
-    
-    if len(position.workers) > 0:
-        return jsonify({'error': 'Reassign workers first'}), 400
-    
-    db.session.delete(position)
-    db.session.commit()
-    return jsonify({'message': 'Position deleted'})
-
-# -------------------- Service Routes --------------------
-@manager_bp.route('/branches/<int:branch_id>/services', methods=['POST'])
-@manager_required
-def create_service(branch_id):
-    error = check_branch_access(branch_id)
-    if error:
-        return error
-
-    data = request.get_json()
-    try:
-        new_service = Service(
-            name=data['name'],
-            duration=data['duration'],
-            branch_id=branch_id
-        )
-        db.session.add(new_service)
-        db.session.commit()
-        return jsonify({'message': 'Service created', 'id': new_service.id}), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 400
-
-@manager_bp.route('/branches/<int:branch_id>/services', methods=['GET'])
-@manager_required
-def get_services(branch_id):
-    error = check_branch_access(branch_id)
-    if error:
-        return error
-    
-    services = Service.query.filter_by(branch_id=branch_id).all()
-    return jsonify([{
-        'id': s.id,
-        'name': s.name,
-        'duration': s.duration,
-        'price_options': len(s.service_costs)
-    } for s in services])
-
-@manager_bp.route('/services/<int:service_id>', methods=['PUT'])
-@manager_required
-def update_service(service_id):
-    service = Service.query.get_or_404(service_id)
-    error = check_branch_access(service.branch_id)
-    if error:
-        return error
-    
-    data = request.get_json()
-    if 'name' in data:
-        if Service.query.filter_by(name=data['name'], branch_id=service.branch_id).first():
-            return jsonify({'error': 'Service name exists'}), 400
-        service.name = data['name']
-    
-    if 'duration' in data:
-        if not isinstance(data['duration'], int) or data['duration'] <= 0:
-            return jsonify({'error': 'Invalid duration'}), 400
-        service.duration = data['duration']
-    
-    db.session.commit()
-    return jsonify({'message': 'Service updated'})
-
-@manager_bp.route('/services/<int:service_id>', methods=['DELETE'])
-@manager_required
-def delete_service(service_id):
-    service = Service.query.get_or_404(service_id)
-    error = check_branch_access(service.branch_id)
-    if error:
-        return error
-    
-    if len(service.service_costs) > 0:
-        return jsonify({'error': 'Delete service costs first'}), 400
-    
-    db.session.delete(service)
-    db.session.commit()
-    return jsonify({'message': 'Service deleted'})
-
-# -------------------- ServiceCost Routes --------------------
-@manager_bp.route('/services/<int:service_id>/costs', methods=['POST'])
-@manager_required
-def set_service_cost(service_id):
-    service = Service.query.get_or_404(service_id)
-    error = check_branch_access(service.branch_id)
-    if error:
-        return error
-
-    data = request.get_json()
-    try:
-        position = Position.query.get_or_404(data['position_id'])
-        if position.branch_id != service.branch_id:
-            return jsonify({'error': 'Position and service must be from the same branch'}), 400
-
-        new_cost = ServiceCost(
-            position_id=data['position_id'],
-            service_id=service_id,
-            price=data['price']
-        )
-        db.session.add(new_cost)
-        db.session.commit()
-        return jsonify({'message': 'Service cost added'}), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 400
-
-@manager_bp.route('/service-costs/<int:cost_id>', methods=['PUT'])
-@manager_required
-def update_service_cost(cost_id):
-    cost = ServiceCost.query.get_or_404(cost_id)
-    error = check_branch_access(cost.service.branch_id)
-    if error:
-        return error
-
-    data = request.get_json()
-    if 'price' in data:
-        cost.price = data['price']
-    db.session.commit()
-    return jsonify({'message': 'Service cost updated'})
-
-@manager_bp.route('/service-costs/<int:cost_id>', methods=['DELETE'])
-@manager_required
-def delete_service_cost(cost_id):
-    cost = ServiceCost.query.get_or_404(cost_id)
-    error = check_branch_access(cost.service.branch_id)
-    if error:
-        return error
-
-    db.session.delete(cost)
-    db.session.commit()
-    return jsonify({'message': 'Service cost deleted'})
-
-# -------------------- Worker Routes --------------------
-@manager_bp.route('/branches/<int:branch_id>/workers', methods=['GET'])
-@manager_required
-def get_workers(branch_id):
-    error = check_branch_access(branch_id)
-    if error:
-        return error
-
-    workers = Worker.query.filter_by(branch_id=branch_id).all()
-    return jsonify([{
-        'id': w.id,
-        'name': w.name,
-        'position_id': w.position_id
-    } for w in workers])
-
-@manager_bp.route('/workers/<int:worker_id>', methods=['GET'])
-@manager_required
-def get_worker(worker_id):
-    worker = Worker.query.get_or_404(worker_id)
-    error = check_branch_access(worker.branch_id)
-    if error:
-        return error
-
-    return jsonify({
-        'id': worker.id,
-        'name': worker.name,
-        'position_id': worker.position_id,
-        'branch_id': worker.branch_id
-    })
-
-@manager_bp.route('/workers/<int:worker_id>', methods=['PUT'])
-@manager_required
-def update_worker(worker_id):
-    worker = Worker.query.get_or_404(worker_id)
-    error = check_branch_access(worker.branch_id)
-    if error:
-        return error
-
-    data = request.get_json()
-    if 'name' in data:
-        worker.name = data['name']
-    if 'position_id' in data:
-        position = Position.query.get(data['position_id'])
-        if not position or position.branch_id != worker.branch_id:
-            return jsonify({'error': 'Invalid position for this branch'}), 400
-        worker.position_id = data['position_id']
-
-    db.session.commit()
-    return jsonify({'message': 'Worker updated'})
-
-@manager_bp.route('/workers/<int:worker_id>', methods=['DELETE'])
-@manager_required
-def delete_worker(worker_id):
-    worker = Worker.query.get_or_404(worker_id)
-    error = check_branch_access(worker.branch_id)
-    if error:
-        return error
-
-    if len(worker.work_hours) > 0:
-        return jsonify({'error': 'Delete work hours first'}), 400
-
-    db.session.delete(worker)
-    db.session.commit()
-    return jsonify({'message': 'Worker deleted'})
-
 # -------------------- Worker Work Hours Routes --------------------
+@manager_bp.route('/workers', methods=['GET', 'POST'])
+@manager_required
+def manage_workers():
+    admin = get_current_admin()
+    if request.method == 'GET':
+        # List workers for branches managed by this manager
+        branches = Branch.query.filter(Branch.managers.any(id=admin.id)).all()
+        branch_ids = [b.id for b in branches]
+
+        workers = Worker.query.filter(Worker.branch_id.in_(branch_ids)).all()
+
+        return jsonify([{
+            'id': w.id,
+            'name': w.name,
+            'position': {
+                'id': w.position.id,
+                'name': w.position.name
+            }
+        } for w in workers])
+
+    elif request.method == 'POST':
+        data = request.get_json()
+        try:
+            name = data['name']
+            position_id = data['position_id']
+            branch_id = admin.branch_id
+            # Check access to branch
+            branch = Branch.query.filter(Branch.id == branch_id, Branch.managers.any(id=admin.id)).first()
+            position = Position.query.filter(Position.id == position_id).first()
+            if not branch:
+                return jsonify({'error': 'Access denied to this branch'}), 403
+            new_worker = Worker(name=name, position_id=position_id, branch_id=branch_id)
+            db.session.add(new_worker)
+            db.session.commit()
+            return jsonify({
+                'id': new_worker.id,
+                'name': new_worker.name,
+                'position': {
+                    'id': new_worker.position.id,
+                    'name': new_worker.position.name
+                }
+            }), 201
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 400
+
+@manager_bp.route('/workers/<int:worker_id>', methods=['PUT', 'DELETE'])
+@manager_required
+def modify_worker(worker_id):
+    worker = Worker.query.get_or_404(worker_id)
+    error = check_branch_access(worker.branch_id)
+    if error:
+        return error
+    if request.method == 'PUT':
+        data = request.get_json()
+        try:
+            if 'name' in data:
+                worker.name = data['name']
+            if 'position' in data:
+                worker.position = data['position']
+            db.session.commit()
+            return jsonify({'message': 'Worker updated'})
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': str(e)}), 400
+    elif request.method == 'DELETE':
+        db.session.delete(worker)
+        db.session.commit()
+        return jsonify({'message': 'Worker deleted'})
+
 @manager_bp.route('/workers/<int:worker_id>/work-hours', methods=['POST', 'GET'])
 @manager_required
 def manage_work_hours(worker_id):
@@ -405,7 +211,7 @@ def add_batch_work_hours(worker_id):
     try:
         start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
         end_date = datetime.strptime(data['end_date'], '%Y-%m-%d').date()
-        days_of_week = data.get('days_of_week', [0,1,2,3,4])
+        days_of_week = data.get('days_of_week', [0,1,2,3,4,5,6])
         
         current_date = start_date
         while current_date <= end_date:

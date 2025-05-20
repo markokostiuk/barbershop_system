@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { registerOwner } from '../api/developer';
+import { registerOwner } from '../../api/developer';
 
 function OwnerCreationPage() {
   const [email, setEmail] = useState('');

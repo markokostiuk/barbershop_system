@@ -2,12 +2,13 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
-import MyBusinesses from './pages/MyBusinesses';
-import OwnerCreationPage from './pages/OwnerCreationPage';
+import MyBusinesses from './pages/owner/MyBusinesses';
+import OwnerCreationPage from './pages/admin/OwnerCreationPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import MyManagers from './pages/MyManagers';
-import Appointments from './pages/manager/Appointments';
-import MyServices from './pages/MyServices';
+import MyManagers from './pages/owner/MyManagers';
+import Appointments from './pages/Appointments';
+import MyServices from './pages/owner/MyServices';
+import Workers from './pages/manager/Workers';
 
 function App() {
   return (
@@ -22,6 +23,8 @@ function App() {
         <Route path="/manager/appointments" element={<Appointments />} />
 
         <Route path="/manager/appointments" element={<Appointments />} />
+        <Route path="/manager/workers" element={<Workers />} />
+        
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

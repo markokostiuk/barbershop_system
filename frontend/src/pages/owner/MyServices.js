@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Button, Modal, Form, Alert, Table } from 'react-bootstrap';
-import AdminNavbar from '../components/Navbar';
-import { getBusinesses, getBranches, getPositions, createPosition, updatePosition, deletePosition, getServices, createService, updateService, deleteService, getServiceCosts, createServiceCost, updateServiceCost, deleteServiceCost } from '../api/owner';
+import AdminNavbar from '../../components/Navbar';
+import { getBusinesses, getBranches, getPositions, createPosition, updatePosition, deletePosition, getServices, createService, updateService, deleteService, getServiceCosts, createServiceCost, updateServiceCost, deleteServiceCost } from '../../api/owner';
 
 function MyServices() {
   const [businesses, setBusinesses] = useState([]);

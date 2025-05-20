@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Container, Row, Col, Button, Table, Modal, Form, Alert, Accordion } from 'react-bootstrap';
-import AdminNavbar from '../components/Navbar';
-import { getBusinesses, createBusiness, updateBusiness, deleteBusiness, getBranches, updateBranch, deleteBranch } from '../api/owner';
+import AdminNavbar from '../../components/Navbar';
+import { getBusinesses, createBusiness, updateBusiness, deleteBusiness, getBranches, updateBranch, deleteBranch } from '../../api/owner';
 import axios from 'axios'; // Import axios for direct API calls
 
 
