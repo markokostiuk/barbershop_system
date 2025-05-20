@@ -129,15 +129,15 @@ function MyManagers() {
       <Container className="mt-5">
         <Row>
           <Col>
-            <h2>Мои Менеджеры</h2>
+            <h2>My managers</h2>
             {error && <Alert variant="danger">{error}</Alert>}
             <Button variant="primary" onClick={() => handleManagerModalOpen()} className="mb-4">
-              Зарегистрировать нового менеджера
+              Register new manager
             </Button>
             {loading ? (
               <div className="text-center">Загрузка...</div>
             ) : managers.length === 0 ? (
-              <Alert variant="info">Менеджеры пока не добавлены.</Alert>
+              <Alert variant="info">There are no managers yet.</Alert>
             ) : (
               <Row>
                 {managers.map(manager => (
@@ -148,7 +148,7 @@ function MyManagers() {
                           <Card.Title>{manager.name}</Card.Title>
                           <Card.Text>
                             <strong>Email:</strong> {manager.email}<br />
-                            <strong>Филиал:</strong> {getBranchInfo(manager.branchId)}
+                            <strong>Branch:</strong> {getBranchInfo(manager.branchId)}
                           </Card.Text>
                         </div>
                         <div>
@@ -172,7 +172,7 @@ function MyManagers() {
       {/* Manager Modal */}
       <Modal show={showManagerModal} onHide={handleManagerModalClose}>
         <Modal.Header closeButton>
-          <Modal.Title>{isEditingManager ? 'Редактировать Менеджера' : 'Добавить Менеджера'}</Modal.Title>
+          <Modal.Title>{isEditingManager ? 'Edit manager data' : 'Register new meneger'}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {error && <Alert variant="danger">{error}</Alert>}
@@ -190,7 +190,7 @@ function MyManagers() {
             </Form.Group>
             {!isEditingManager && (
               <Form.Group className="mb-3" controlId="managerPassword">
-                <Form.Label>Пароль</Form.Label>
+                <Form.Label>Password</Form.Label>
                 <Form.Control
                   type="password"
                   name="password"
@@ -201,7 +201,7 @@ function MyManagers() {
               </Form.Group>
             )}
             <Form.Group className="mb-3" controlId="managerName">
-              <Form.Label>Имя</Form.Label>
+              <Form.Label>Name</Form.Label>
               <Form.Control
                 type="text"
                 name="name"
@@ -211,14 +211,14 @@ function MyManagers() {
               />
             </Form.Group>
             <Form.Group className="mb-3" controlId="branchSelect">
-              <Form.Label>Выбрать Филиал</Form.Label>
+              <Form.Label>Choose branch</Form.Label>
               <Form.Select
                 name="branchId"
                 value={managerFormData.branchId}
                 onChange={handleManagerInputChange}
                 required={!isEditingManager}
               >
-                <option value="">-- Выбрать Филиал --</option>
+                <option value="">-- Choose branch --</option>
                 {allBranches.map(branch => (
                   <option key={branch.id} value={branch.id}>
                     {`${branch.businessName} - ${branch.locality} - ${branch.name}`}
@@ -227,7 +227,7 @@ function MyManagers() {
               </Form.Select>
             </Form.Group>
             <Button variant="primary" type="submit" disabled={loading}>
-              {loading ? 'Сохранение...' : isEditingManager ? 'Обновить' : 'Создать'}
+              {loading ? 'Saving...' : isEditingManager ? 'Reload' : 'Create'}
             </Button>
           </Form>
         </Modal.Body>
@@ -236,17 +236,17 @@ function MyManagers() {
       {/* Delete Confirmation Modal */}
       <Modal show={showDeleteModal} onHide={handleDeleteModalClose}>
         <Modal.Header closeButton>
-          <Modal.Title>Подтвердить Удаление</Modal.Title>
+          <Modal.Title>Submit deleting</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          Вы уверены, что хотите удалить этого менеджера? Это действие нельзя отменить.
+          Are you sure you want to delete this manager? This action cannot be undone.
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleDeleteModalClose}>
-            Отмена
+            Deny
           </Button>
           <Button variant="danger" onClick={handleDeleteManager} disabled={loading}>
-            {loading ? 'Удаление...' : 'Удалить'}
+            {loading ? 'Deleting...' : 'Delete'}
           </Button>
         </Modal.Footer>
       </Modal>

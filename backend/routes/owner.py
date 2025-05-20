@@ -185,8 +185,7 @@ def get_branches(business_id):
         'address': b.address,
         'phone_number': b.phone_number,
         'start_work_hour': b.start_work_hour.isoformat(),
-        'end_work_hour': b.end_work_hour.isoformat(),
-        'workers_count': len(b.workers)
+        'end_work_hour': b.end_work_hour.isoformat()
     } for b in branches])
 
 @owner_bp.route('/branches/<int:branch_id>', methods=['PUT'])
@@ -235,20 +234,6 @@ def delete_branch(branch_id):
     return jsonify({'message': 'Branch deleted'})
 
 
-
-# @owner_bp.route('/managers', methods=['GET'])
-# @owner_required
-# def get_managers():
-#     try:
-#         managers = Admin.query.filter_by(role='manager').all()
-#         return jsonify([{
-#             'id': manager.id,
-#             'name': manager.name,
-#             'email': manager.email
-#         } for manager in managers]), 200
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500
-
 @owner_bp.route('/managers', methods=['GET'])
 @owner_required
 def get_managers():
@@ -259,19 +244,329 @@ def get_managers():
                 'id': manager.id,
                 'name': manager.name,
                 'email': manager.email,
-                'branches': [
-                    {
-                        'id': branch.id,
-                        'name': branch.name,
-                        'locality': branch.locality,
-                        'address': branch.address,
-                        'phone_number': branch.phone_number,
-                        'work_hours': f"{branch.start_work_hour} - {branch.end_work_hour}"
-                    } for branch in manager.branches
-                ]
+                'branchId': manager.branch_id if manager.branch_id else None
             }
             for manager in managers
         ]), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# Assign manager to branch
+@owner_bp.route('/branches/<int:branch_id>/managers/<int:manager_id>', methods=['POST'])
+@owner_required
+def assign_manager_to_branch(branch_id, manager_id):
+    admin = get_current_admin()
+    if not admin:
+        return jsonify({'error': 'Invalid admin'}), 401
+
+    branch = Branch.query.get_or_404(branch_id)
+    if not branch.business_id:
+        return jsonify({'error': 'Branch business not set'}), 400
+
+    business = Business.query.filter(Business.id == branch.business_id, Business.owners.any(id=admin.id)).first()
+    if not business:
+        return jsonify({'error': 'Access denied to this branch'}), 403
+
+    manager = Admin.query.filter_by(id=manager_id, role='manager').first()
+    if not manager:
+        return jsonify({'error': 'Manager not found'}), 404
+
+    # Assign branch to manager (one branch per manager)
+    manager.branch = branch
+    db.session.commit()
+    return jsonify({'message': 'Manager assigned to branch'}), 200
+
+# Delete manager
+@owner_bp.route('/managers/<int:manager_id>', methods=['DELETE'])
+@owner_required
+def delete_manager(manager_id):
+    admin = get_current_admin()
+    if not admin:
+        return jsonify({'error': 'Invalid admin'}), 401
+
+    manager = Admin.query.filter_by(id=manager_id, role='manager').first()
+    if not manager:
+        return jsonify({'error': 'Manager not found'}), 404
+
+    # Check if manager belongs to a business owned by admin
+    if manager.branch:
+        branch = Branch.query.get(manager.branch_id)
+        if not branch or not branch.business_id:
+            return jsonify({'error': 'Branch business not set'}), 400
+        business = Business.query.filter(Business.id == branch.business_id, Business.owners.any(id=admin.id)).first()
+        if not business:
+            return jsonify({'error': 'Access denied to this manager'}), 403
+
+    db.session.delete(manager)
+    db.session.commit()
+    return jsonify({'message': 'Manager deleted'}), 200
+
+@owner_bp.route('/managers/<int:manager_id>', methods=['PUT'])
+@owner_required
+def update_manager(manager_id):
+    admin = get_current_admin()
+    manager = Admin.query.get_or_404(manager_id)
+    
+    data = request.get_json()
+    if 'name' in data:
+        manager.name = data['name']
+    
+    db.session.commit()
+    return jsonify({'message': 'Business updated'})
+
+
+# New routes for managing positions, services, and service costs
+
+from flask import request, jsonify
+from models import Position, Service, ServiceCost
+
+# Positions CRUD
+@owner_bp.route('/branches/<int:branch_id>/positions', methods=['GET'])
+@owner_required
+def get_positions(branch_id):
+    admin = get_current_admin()
+    # Check branch ownership
+    branch = Branch.query.get_or_404(branch_id)
+    if not branch.business_id:
+        return jsonify({'error': 'Branch business not set'}), 400
+    business = Business.query.filter(Business.id == branch.business_id, Business.owners.any(id=admin.id)).first()
+    if not business:
+        return jsonify({'error': 'Access denied to this branch'}), 403
+
+    positions = Position.query.filter_by(branch_id=branch_id).all()
+    return jsonify([{'id': p.id, 'name': p.name} for p in positions])
+
+@owner_bp.route('/branches/<int:branch_id>/positions', methods=['POST'])
+@owner_required
+def create_position(branch_id):
+    admin = get_current_admin()
+    data = request.get_json()
+    name = data.get('name')
+    if not name:
+        return jsonify({'error': 'Position name is required'}), 400
+
+    branch = Branch.query.get_or_404(branch_id)
+    if not branch.business_id:
+        return jsonify({'error': 'Branch business not set'}), 400
+    business = Business.query.filter(Business.id == branch.business_id, Business.owners.any(id=admin.id)).first()
+    if not business:
+        return jsonify({'error': 'Access denied to this branch'}), 403
+
+    new_position = Position(name=name, branch_id=branch_id)
+    db.session.add(new_position)
+    db.session.commit()
+    return jsonify({'message': 'Position created', 'id': new_position.id}), 201
+
+@owner_bp.route('/positions/<int:position_id>', methods=['PUT'])
+@owner_required
+def update_position(position_id):
+    admin = get_current_admin()
+    position = Position.query.get_or_404(position_id)
+    branch = Branch.query.get(position.branch_id)
+    if not branch or not branch.business_id:
+        return jsonify({'error': 'Branch business not set'}), 400
+    business = Business.query.filter(Business.id == branch.business_id, Business.owners.any(id=admin.id)).first()
+    if not business:
+        return jsonify({'error': 'Access denied to this position'}), 403
+
+    data = request.get_json()
+    name = data.get('name')
+    if name:
+        position.name = name
+        db.session.commit()
+        return jsonify({'message': 'Position updated'})
+    else:
+        return jsonify({'error': 'Position name is required'}), 400
+
+@owner_bp.route('/positions/<int:position_id>', methods=['DELETE'])
+@owner_required
+def delete_position(position_id):
+    admin = get_current_admin()
+    position = Position.query.get_or_404(position_id)
+    branch = Branch.query.get(position.branch_id)
+    if not branch or not branch.business_id:
+        return jsonify({'error': 'Branch business not set'}), 400
+    business = Business.query.filter(Business.id == branch.business_id, Business.owners.any(id=admin.id)).first()
+    if not business:
+        return jsonify({'error': 'Access denied to this position'}), 403
+
+    db.session.delete(position)
+    db.session.commit()
+    return jsonify({'message': 'Position deleted'})
+
+# Services CRUD
+@owner_bp.route('/branches/<int:branch_id>/services', methods=['GET'])
+@owner_required
+def get_services(branch_id):
+    admin = get_current_admin()
+    branch = Branch.query.get_or_404(branch_id)
+    if not branch.business_id:
+        return jsonify({'error': 'Branch business not set'}), 400
+    business = Business.query.filter(Business.id == branch.business_id, Business.owners.any(id=admin.id)).first()
+    if not business:
+        return jsonify({'error': 'Access denied to this branch'}), 403
+
+    services = Service.query.filter_by(branch_id=branch_id).all()
+    return jsonify([{'id': s.id, 'name': s.name, 'duration': s.duration} for s in services])
+
+@owner_bp.route('/branches/<int:branch_id>/services', methods=['POST'])
+@owner_required
+def create_service(branch_id):
+    admin = get_current_admin()
+    data = request.get_json()
+    name = data.get('name')
+    duration = data.get('duration')
+    if not name or duration is None:
+        return jsonify({'error': 'Service name and duration are required'}), 400
+
+    branch = Branch.query.get_or_404(branch_id)
+    if not branch.business_id:
+        return jsonify({'error': 'Branch business not set'}), 400
+    business = Business.query.filter(Business.id == branch.business_id, Business.owners.any(id=admin.id)).first()
+    if not business:
+        return jsonify({'error': 'Access denied to this branch'}), 403
+
+    new_service = Service(name=name, duration=duration, branch_id=branch_id)
+    db.session.add(new_service)
+    db.session.commit()
+    return jsonify({'message': 'Service created', 'id': new_service.id}), 201
+
+@owner_bp.route('/services/<int:service_id>', methods=['PUT'])
+@owner_required
+def update_service(service_id):
+    admin = get_current_admin()
+    service = Service.query.get_or_404(service_id)
+    branch = Branch.query.get(service.branch_id)
+    if not branch or not branch.business_id:
+        return jsonify({'error': 'Branch business not set'}), 400
+    business = Business.query.filter(Business.id == branch.business_id, Business.owners.any(id=admin.id)).first()
+    if not business:
+        return jsonify({'error': 'Access denied to this service'}), 403
+
+    data = request.get_json()
+    name = data.get('name')
+    duration = data.get('duration')
+    if name:
+        service.name = name
+    if duration is not None:
+        service.duration = duration
+    db.session.commit()
+    return jsonify({'message': 'Service updated'})
+
+@owner_bp.route('/services/<int:service_id>', methods=['DELETE'])
+@owner_required
+def delete_service(service_id):
+    admin = get_current_admin()
+    service = Service.query.get_or_404(service_id)
+    branch = Branch.query.get(service.branch_id)
+    if not branch or not branch.business_id:
+        return jsonify({'error': 'Branch business not set'}), 400
+    business = Business.query.filter(Business.id == branch.business_id, Business.owners.any(id=admin.id)).first()
+    if not business:
+        return jsonify({'error': 'Access denied to this service'}), 403
+
+    db.session.delete(service)
+    db.session.commit()
+    return jsonify({'message': 'Service deleted'})
+
+# ServiceCosts CRUD
+@owner_bp.route('/branches/<int:branch_id>/service_costs', methods=['GET'])
+@owner_required
+def get_service_costs_by_branch(branch_id):
+    admin = get_current_admin()
+    branch = Branch.query.get_or_404(branch_id)
+    if not branch.business_id:
+        return jsonify({'error': 'Branch business not set'}), 400
+    business = Business.query.filter(Business.id == branch.business_id, Business.owners.any(id=admin.id)).first()
+    if not business:
+        return jsonify({'error': 'Access denied to this branch'}), 403
+
+    positions = Position.query.filter_by(branch_id=branch_id).all()
+    position_ids = [p.id for p in positions]
+
+    service_costs = ServiceCost.query.filter(ServiceCost.position_id.in_(position_ids)).all()
+
+    result = {}
+    for sc in service_costs:
+        pos_id = sc.position_id
+        if pos_id not in result:
+            result[pos_id] = []
+        result[pos_id].append({
+            'id': sc.id,
+            'service_id': sc.service_id,
+            'price': sc.price
+        })
+
+    response = []
+    for position in positions:
+        response.append({
+            'position_id': position.id,
+            'position_name': position.name,
+            'service_costs': result.get(position.id, [])
+        })
+
+    return jsonify(response)
+
+
+@owner_bp.route('/positions/<int:position_id>/service_costs', methods=['POST'])
+@owner_required
+def create_service_cost(position_id):
+    admin = get_current_admin()
+    data = request.get_json()
+    service_id = data.get('service_id')
+    price = data.get('price')
+    if not service_id or price is None:
+        return jsonify({'error': 'Service ID and price are required'}), 400
+
+    position = Position.query.get_or_404(position_id)
+    branch = Branch.query.get(position.branch_id)
+    if not branch or not branch.business_id:
+        return jsonify({'error': 'Branch business not set'}), 400
+    business = Business.query.filter(Business.id == branch.business_id, Business.owners.any(id=admin.id)).first()
+    if not business:
+        return jsonify({'error': 'Access denied to this position'}), 403
+
+    new_service_cost = ServiceCost(position_id=position_id, service_id=service_id, price=price)
+    db.session.add(new_service_cost)
+    db.session.commit()
+    return jsonify({'message': 'Service cost created', 'id': new_service_cost.id}), 201
+
+@owner_bp.route('/service_costs/<int:service_cost_id>', methods=['PUT'])
+@owner_required
+def update_service_cost(service_cost_id):
+    admin = get_current_admin()
+    service_cost = ServiceCost.query.get_or_404(service_cost_id)
+    position = Position.query.get(service_cost.position_id)
+    branch = Branch.query.get(position.branch_id)
+    if not branch or not branch.business_id:
+        return jsonify({'error': 'Branch business not set'}), 400
+    business = Business.query.filter(Business.id == branch.business_id, Business.owners.any(id=admin.id)).first()
+    if not business:
+        return jsonify({'error': 'Access denied to this service cost'}), 403
+
+    data = request.get_json()
+    price = data.get('price')
+    if price is not None:
+        service_cost.price = price
+        db.session.commit()
+        return jsonify({'message': 'Service cost updated'})
+    else:
+        return jsonify({'error': 'Price is required'}), 400
+
+@owner_bp.route('/service_costs/<int:service_cost_id>', methods=['DELETE'])
+@owner_required
+def delete_service_cost(service_cost_id):
+    admin = get_current_admin()
+    service_cost = ServiceCost.query.get_or_404(service_cost_id)
+    position = Position.query.get(service_cost.position_id)
+    branch = Branch.query.get(position.branch_id)
+    if not branch or not branch.business_id:
+        return jsonify({'error': 'Branch business not set'}), 400
+    business = Business.query.filter(Business.id == branch.business_id, Business.owners.any(id=admin.id)).first()
+    if not business:
+        return jsonify({'error': 'Access denied to this service cost'}), 403
+
+    db.session.delete(service_cost)
+    db.session.commit()
+    return jsonify({'message': 'Service cost deleted'})
 

@@ -6,3 +6,6 @@ python backend/init_db.py
 to start server:
 python backend/app.py
 
+to start frontend:
+cd frontend
+npm start

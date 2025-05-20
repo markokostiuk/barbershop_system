@@ -16,9 +16,11 @@ function LoginPage() {
       localStorage.setItem('access_token', data.access_token);
       localStorage.setItem('role', data.role);
       if (data.role === 'owner') {
-        navigate('/admin/mybusinesses');
+        navigate('/owner/mybusinesses');
       } else if (data.role === 'manager') {
         navigate('/manager/appointments');
+      } else if (data.role === 'developer') {
+        navigate('/developer/ownercreate');
       } else {
         navigate('/login');
       }

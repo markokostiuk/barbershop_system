@@ -13,4 +13,4 @@ class Branch(db.Model):
     workers = db.relationship('Worker', backref='branch', lazy=True)
     positions = db.relationship('Position', backref='branch', lazy=True)
     services = db.relationship('Service', backref='branch', lazy=True)
-    managers = db.relationship('Admin', secondary='branch_managers', back_populates='branches')
+    managers = db.relationship('Admin', back_populates='branch')

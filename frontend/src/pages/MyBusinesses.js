@@ -25,6 +25,10 @@ function MyBusinesses() {
   });
 
   const [error, setError] = useState('');
+  const [showDeleteBusinessModal, setShowDeleteBusinessModal] = useState(false);
+  const [businessToDelete, setBusinessToDelete] = useState(null);
+  const [showDeleteBranchModal, setShowDeleteBranchModal] = useState(false);
+  const [branchToDelete, setBranchToDelete] = useState(null);
 
   const BASE_URL = 'http://localhost:5000';
 
@@ -212,7 +216,7 @@ function MyBusinesses() {
                       <Button variant="info" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); handleBusinessModalOpen(business); }}>
                         Edit
                       </Button>
-                      <Button variant="danger" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); handleDeleteBusiness(business.id); }}>
+                      <Button variant="danger" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); setBusinessToDelete(business); setShowDeleteBusinessModal(true); }}>
                         Delete
                       </Button>
                       <Button variant="primary" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); handleBranchModalOpen(null, business.id); }}>
@@ -235,7 +239,7 @@ function MyBusinesses() {
                               <Button variant="info" onClick={() => handleBranchModalOpen(branch, null)} className="me-2">
                                 Edit
                               </Button>
-                              <Button variant="danger" onClick={() => handleDeleteBranch(branch.id, business.id)}>
+                              <Button variant="danger" onClick={() => { setBranchToDelete(branch); setShowDeleteBranchModal(true); }}>
                                 Delete
                               </Button>
                             </div>
@@ -280,6 +284,24 @@ function MyBusinesses() {
             </Button>
           </Form>
         </Modal.Body>
+      </Modal>
+
+      {/* Delete Business Confirmation Modal */}
+      <Modal show={showDeleteBusinessModal} onHide={() => setShowDeleteBusinessModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Delete Business</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete the business "{businessToDelete?.name}"? This action cannot be undone.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteBusinessModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={() => { handleDeleteBusiness(businessToDelete.id); setShowDeleteBusinessModal(false); }}>
+            Delete
+          </Button>
+        </Modal.Footer>
       </Modal>
 
       {/* Branch Modal */}
@@ -355,6 +377,24 @@ function MyBusinesses() {
             </Button>
           </Form>
         </Modal.Body>
+      </Modal>
+
+      {/* Delete Branch Confirmation Modal */}
+      <Modal show={showDeleteBranchModal} onHide={() => setShowDeleteBranchModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Delete Branch</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete the branch "{branchToDelete?.name}"? This action cannot be undone.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteBranchModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={() => { handleDeleteBranch(branchToDelete.id, branchToDelete.business_id); setShowDeleteBranchModal(false); }}>
+            Delete
+          </Button>
+        </Modal.Footer>
       </Modal>
     </div>
   );

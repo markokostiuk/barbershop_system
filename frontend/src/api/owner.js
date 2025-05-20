@@ -44,7 +44,7 @@ export async function deleteBusiness(businessId) {
 
 export async function createBranch(businessId, data) {
   const token = localStorage.getItem('access_token');
-  const response = await axios.post(`${BASE_URL}/businesses/${businessId}/branches`, data, {
+  const response = await axios.post(`${BASE_URL}/owner/businesses/${businessId}/branches`, data, {
     headers: {
       Authorization: `Bearer ${token}`
     }
@@ -104,7 +104,7 @@ export async function createManager(data) {
 
 export async function updateManager(managerId, data) {
   const token = localStorage.getItem('access_token');
-  const response = await axios.put(`${BASE_URL}/owner/admins/${managerId}`, data, {
+  const response = await axios.put(`${BASE_URL}/owner/managers/${managerId}`, data, {
     headers: {
       Authorization: `Bearer ${token}`
     }
@@ -114,7 +114,7 @@ export async function updateManager(managerId, data) {
 
 export async function deleteManager(managerId) {
   const token = localStorage.getItem('access_token');
-  const response = await axios.delete(`${BASE_URL}/owner/admins/${managerId}`, {
+  const response = await axios.delete(`${BASE_URL}/owner/managers/${managerId}`, {
     headers: {
       Authorization: `Bearer ${token}`
     }
@@ -141,3 +141,104 @@ export async function removeManagerFromBranch(managerId, branchId) {
   });
   return response.data;
 }
+
+
+// Positions API
+export async function getPositions(branchId) {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.get(`${BASE_URL}/owner/branches/${branchId}/positions`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+}
+
+export async function createPosition(branchId, data) {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.post(`${BASE_URL}/owner/branches/${branchId}/positions`, data, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+}
+
+export async function updatePosition(positionId, data) {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.put(`${BASE_URL}/owner/positions/${positionId}`, data, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+}
+
+export async function deletePosition(positionId) {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.delete(`${BASE_URL}/owner/positions/${positionId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+}
+
+// Services API
+export async function getServices(branchId) {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.get(`${BASE_URL}/owner/branches/${branchId}/services`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+}
+
+export async function createService(branchId, data) {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.post(`${BASE_URL}/owner/branches/${branchId}/services`, data, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+}
+
+export async function updateService(serviceId, data) {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.put(`${BASE_URL}/owner/services/${serviceId}`, data, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+}
+
+export async function deleteService(serviceId) {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.delete(`${BASE_URL}/owner/services/${serviceId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+}
+
+// Service Costs API based on branch_id
+export async function getServiceCosts(branchId) {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.get(`${BASE_URL}/owner/branches/${branchId}/service_costs`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+}
+
+export async function createServiceCost(position_id, data) {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.post(`${BASE_URL}/owner/positions/${position_id}/service_costs`, data, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+}
+
+export async function updateServiceCost(serviceCostId, data) {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.put(`${BASE_URL}/owner/service_costs/${serviceCostId}`, data, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+}
+
+export async function deleteServiceCost(serviceCostId) {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.delete(`${BASE_URL}/owner/service_costs/${serviceCostId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+}
+

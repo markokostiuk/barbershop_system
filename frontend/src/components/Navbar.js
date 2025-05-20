@@ -57,9 +57,10 @@ function AdminNavbar({ role }) {
             {role === 'owner' && (
               <>
                 <Navbar.Brand>Admin Panel</Navbar.Brand>
-                <Nav.Link onClick={() => navigate('/admin/mybusinesses')}>My Businesses</Nav.Link>
-                <Nav.Link onClick={() => navigate('/admin/mymanagers')}>My Managers</Nav.Link>
-                <Nav.Link onClick={() => navigate('/manager/statistics')}>Statistics</Nav.Link>
+                <Nav.Link onClick={() => navigate('/owner/mybusinesses')}>My Businesses</Nav.Link>
+                <Nav.Link onClick={() => navigate('/owner/mymanagers')}>My Managers</Nav.Link>
+                <Nav.Link onClick={() => navigate('/owner/costpositions')}>Prices&Positions</Nav.Link>
+                <Nav.Link onClick={() => navigate('/owner/statistics')}>Statistics</Nav.Link>
               </>
             )}
 
