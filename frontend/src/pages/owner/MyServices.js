@@ -272,7 +272,7 @@ function MyServices() {
       <AdminNavbar role="owner" />
       <Container className="mt-5">
         <h2>Service Administration</h2>
-        {error && <Alert variant="danger">{error}</Alert>}
+        {error && <Alert variant="btn btn-outline-danger">{error}</Alert>}
 
         <Form.Group className="mb-3">
           <Form.Label>Business</Form.Label>
@@ -314,8 +314,8 @@ function MyServices() {
                       <tr key={position.id} onClick={() => handlePositionSelect(position.id)} style={{ cursor: 'pointer' }}>
                         <td>{position.name}</td>
                         <td>
-                          <Button size="sm" variant="info" onClick={e => { e.stopPropagation(); handlePositionModalOpen(position); }}>Edit</Button>{' '}
-                          <Button size="sm" variant="danger" onClick={e => { e.stopPropagation(); handleDeletePosition(position.id); }}>Delete</Button>
+                          <Button size="sm" variant="btn btn-outline-primary" onClick={e => { e.stopPropagation(); handlePositionModalOpen(position); }}>Edit</Button>{' '}
+                          <Button size="sm" variant="btn btn-outline-danger" onClick={e => { e.stopPropagation(); handleDeletePosition(position.id); }}>Delete</Button>
                         </td>
                       </tr>
                     ))}
@@ -340,8 +340,8 @@ function MyServices() {
                         <td>{service.name}</td>
                         <td>{service.duration}</td>
                         <td>
-                          <Button size="sm" variant="info" onClick={() => handleServiceModalOpen(service)}>Edit</Button>{' '}
-                          <Button size="sm" variant="danger" onClick={() => handleDeleteService(service.id)}>Delete</Button>
+                          <Button size="sm" variant="btn btn-outline-primary" onClick={() => handleServiceModalOpen(service)}>Edit</Button>{' '}
+                          <Button size="sm" variant="btn btn-outline-danger" onClick={() => handleDeleteService(service.id)}>Delete</Button>
                         </td>
                       </tr>
                     ))}
@@ -377,8 +377,8 @@ function MyServices() {
                             <td>{service ? service.name : 'Неизвестно'}</td>
                             <td>{sc.price}</td>
                             <td>
-                              <Button size="sm" variant="info" onClick={() => handleServiceCostModalOpen(sc)}>Edit</Button>{' '}
-                              <Button size="sm" variant="danger" onClick={() => handleDeleteServiceCost(sc.id, position.position_id)}>Delete</Button>
+                              <Button size="sm" variant="btn btn-outline-primary" onClick={() => handleServiceCostModalOpen(sc)}>Edit</Button>{' '}
+                              <Button size="sm" variant="btn btn-outline-danger" onClick={() => handleDeleteServiceCost(sc.id, position.position_id)}>Delete</Button>
                             </td>
                           </tr>
                         );
@@ -398,7 +398,7 @@ function MyServices() {
             <Modal.Title>{isEditingPosition ? 'Edit Position' : 'Add Position'}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            {error && <Alert variant="danger">{error}</Alert>}
+            {error && <Alert variant="btn btn-outline-danger">{error}</Alert>}
             <Form onSubmit={handlePositionSubmit}>
               <Form.Group className="mb-3" controlId="positionName">
                 <Form.Label>Name</Form.Label>
@@ -423,7 +423,7 @@ function MyServices() {
             <Modal.Title>{isEditingService ? 'Edit Service' : 'Add Service'}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            {error && <Alert variant="danger">{error}</Alert>}
+            {error && <Alert variant="btn btn-outline-danger">{error}</Alert>}
             <Form onSubmit={handleServiceSubmit}>
               <Form.Group className="mb-3" controlId="serviceName">
                 <Form.Label>Name</Form.Label>
@@ -459,7 +459,7 @@ function MyServices() {
             <Modal.Title>{isEditingServiceCost ? 'Edit Service Cost' : 'Add Service Cost'}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            {error && <Alert variant="danger">{error}</Alert>}
+            {error && <Alert variant="btn btn-outline-danger">{error}</Alert>}
             <Form onSubmit={handleServiceCostSubmit}>
               <Form.Group className="mb-3" controlId="serviceCostPosition">
                 <Form.Label>Position</Form.Label>

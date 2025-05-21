@@ -47,7 +47,7 @@ function Workers() {
 
   // Modals and form states
   const [showWorkerModal, setShowWorkerModal] = useState(false);
-  const [workerFormData, setWorkerFormData] = useState({ id: null, name: '', position_id: null});
+  const [workerFormData, setWorkerFormData] = useState({ id: null, name: '', position_id: null, email: '', password: ''});
   const [positions, setPositions] = useState([]);
   const [isEditingWorker, setIsEditingWorker] = useState(false);
 
@@ -122,11 +122,12 @@ function Workers() {
   const handleWorkerModalOpen = (worker = null) => {
     if (worker) {
       // Find position id from positions list by matching position id instead of name
-      const positionObj = positions.find(p => p.id === worker.position_id);
-      setWorkerFormData({ id: worker.id, name: worker.name, position_id: positionObj ? positionObj.id : null });
+      // const positionObj = positions.find(p => p.position.id === worker.position_id);
+      setWorkerFormData({ id: worker.id, name: worker.name, position_id: worker.position.id ? worker.position.id : null , email: worker.email});
+      console.log(workerFormData);
       setIsEditingWorker(true);
     } else {
-      setWorkerFormData({ id: null, name: '', position_id: null });
+      setWorkerFormData({ id: null, name: '', position_id: null , email: ''});
       setIsEditingWorker(false);
     }
     setShowWorkerModal(true);
@@ -155,8 +156,8 @@ function Workers() {
 
   const handleWorkerSubmit = async (e) => {
     e.preventDefault();
-    if (!workerFormData.name || !workerFormData.position_id) {
-      setError('Name, position, and branch are required');
+    if (!workerFormData.name || !workerFormData.position_id || !workerFormData.email || (!isEditingWorker && !workerFormData.password)) {
+      setError('Please, fill all fields');
       return;
     }
     try {
@@ -164,7 +165,9 @@ function Workers() {
       const submitData = {
         id: workerFormData.id,
         name: workerFormData.name,
-        position_id: workerFormData.position_id
+        position_id: workerFormData.position_id,
+        email: workerFormData.email,
+        password: workerFormData.password
       };
       if (isEditingWorker) {
         await updateWorker(workerFormData.id, submitData);
@@ -360,7 +363,9 @@ function Workers() {
             </div>
             {loadingWorkers ? (
               <p>Loading workers...</p>
-            ) : (
+            ) : workers.length === 0 ? (
+                <Alert variant="btn btn-outline-primary">There are no workers yet.</Alert>
+              ) : (
               <div>
                 {workers.map(worker => (
                   <div
@@ -371,8 +376,8 @@ function Workers() {
                   >
                     <span>{worker.name} ({worker.position.name})</span>
                     <div>
-                      <Button size="sm" variant="info" className="me-2" onClick={e => { e.stopPropagation(); handleWorkerModalOpen(worker); }}>Edit</Button>
-                      <Button size="sm" variant="danger" onClick={e => { e.stopPropagation(); handleDeleteWorker(worker.id); }}>Delete</Button>
+                      <Button size="sm" variant="btn btn-outline-primary" className="me-2" onClick={e => { e.stopPropagation(); handleWorkerModalOpen(worker); }}>Edit</Button>
+                      <Button size="sm" variant="btn btn-outline-danger" onClick={e => { e.stopPropagation(); handleDeleteWorker(worker.id); }}>Delete</Button>
                     </div>
                   </div>
                 ))}
@@ -432,8 +437,8 @@ function Workers() {
                             <td>{wh.start}</td>
                             <td>{wh.end}</td>
                             <td>
-                              <Button size="sm" variant="info" onClick={() => handleWorkHourModalOpen(wh)}>Edit</Button>{' '}
-                              <Button size="sm" variant="danger" onClick={() => handleDeleteWorkHour(wh.id)}>Delete</Button>
+                              <Button size="sm" variant="btn btn-outline-primary" onClick={() => handleWorkHourModalOpen(wh)}>Edit</Button>{' '}
+                              <Button size="sm" variant="btn btn-outline-danger" onClick={() => handleDeleteWorkHour(wh.id)}>Delete</Button>
                             </td>
                           </tr>
                         ))
@@ -469,6 +474,30 @@ function Workers() {
                   required
                 />
               </Form.Group>
+
+              <Form.Group className="mb-3" controlId="workerEmail">
+                <Form.Label>Email</Form.Label>
+                <Form.Control
+                  type="text"
+                  name="email"
+                  value={workerFormData.email}
+                  onChange={handleWorkerInputChange}
+                  required
+                  disabled={isEditingWorker}
+                />
+              </Form.Group>
+              {!isEditingWorker && (
+                <Form.Group className="mb-3" controlId="workerPassword">
+                  <Form.Label>Password</Form.Label>
+                  <Form.Control
+                    type="password"
+                    name="password"
+                    value={workerFormData.password}
+                    onChange={handleWorkerInputChange}
+                    required
+                  />
+                </Form.Group>
+              )}
               <Form.Group className="mb-3" controlId="workerPosition">
                 <Form.Label>Select Position</Form.Label>
                 <Form.Select

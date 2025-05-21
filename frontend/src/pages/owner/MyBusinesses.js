@@ -14,6 +14,7 @@ function MyBusinesses() {
   const [isEditingBusiness, setIsEditingBusiness] = useState(false);
   const [isEditingBranch, setIsEditingBranch] = useState(false);
   const [businessFormData, setBusinessFormData] = useState({ name: '' });
+  const [loading, setLoading] = useState(false);
   const [branchFormData, setBranchFormData] = useState({
     id: null,
     name: '',
@@ -37,11 +38,14 @@ function MyBusinesses() {
   }, []);
 
   const loadBusinesses = async () => {
+    setLoading(true);
     try {
       const data = await getBusinesses();
       setBusinesses(data);
     } catch (err) {
       setError('Failed to load businesses');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -203,20 +207,25 @@ function MyBusinesses() {
         <Row>
           <Col>
             <h2>My Businesses</h2>
-            {error && <Alert variant="danger">{error}</Alert>}
+            {error && <Alert variant="btn btn-outline-danger">{error}</Alert>}
             <Button variant="primary" onClick={() => handleBusinessModalOpen()} className="mb-3">
               Add Business
             </Button>
+            {loading ? (
+              <div className="text-center">Loading...</div>
+            ) : businesses.length === 0 ? (
+              <Alert variant="btn btn-outline-primary">There are no your businesses yet.</Alert>
+            ) : (
             <Accordion activeKey={expandedBusiness} onSelect={handleToggleBusiness}>
               {businesses.map(business => (
                 <Accordion.Item key={business.id} eventKey={business.id}>
                   <Accordion.Header className="d-flex justify-content-between align-items-center">
                     <b>{business.name}</b>
                     <div className="ms-auto d-flex align-items-center">
-                      <Button variant="info" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); handleBusinessModalOpen(business); }}>
+                      <Button variant="btn btn-outline-primary" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); handleBusinessModalOpen(business); }}>
                         Edit
                       </Button>
-                      <Button variant="danger" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); setBusinessToDelete(business); setShowDeleteBusinessModal(true); }}>
+                      <Button variant="btn btn-outline-danger" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); setBusinessToDelete(business); setShowDeleteBusinessModal(true); }}>
                         Delete
                       </Button>
                       <Button variant="primary" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); handleBranchModalOpen(null, business.id); }}>
@@ -236,10 +245,10 @@ function MyBusinesses() {
                               <div>Work hours: {branch.start_work_hour} - {branch.end_work_hour}</div>
                             </div>
                             <div>
-                              <Button variant="info" onClick={() => handleBranchModalOpen(branch, null)} className="me-2">
+                              <Button variant="btn btn-outline-primary" onClick={() => handleBranchModalOpen(branch, null)} className="me-2">
                                 Edit
                               </Button>
-                              <Button variant="danger" onClick={() => { setBranchToDelete(branch); setShowDeleteBranchModal(true); }}>
+                              <Button variant="btn btn-outline-danger" onClick={() => { setBranchToDelete(branch); setShowDeleteBranchModal(true); }}>
                                 Delete
                               </Button>
                             </div>
@@ -256,8 +265,10 @@ function MyBusinesses() {
                 </Accordion.Item>
               ))}
             </Accordion>
+            )}
           </Col>
         </Row>
+        
 
       </Container>
 
@@ -267,7 +278,7 @@ function MyBusinesses() {
           <Modal.Title>{isEditingBusiness ? 'Edit Business' : 'Add Business'}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {error && <Alert variant="danger">{error}</Alert>}
+          {error && <Alert variant="btn btn-outline-danger">{error}</Alert>}
           <Form onSubmit={handleBusinessSubmit}>
             <Form.Group className="mb-3" controlId="businessName">
               <Form.Label>Name</Form.Label>
@@ -298,7 +309,7 @@ function MyBusinesses() {
           <Button variant="secondary" onClick={() => setShowDeleteBusinessModal(false)}>
             Cancel
           </Button>
-          <Button variant="danger" onClick={() => { handleDeleteBusiness(businessToDelete.id); setShowDeleteBusinessModal(false); }}>
+          <Button variant="btn btn-outline-danger" onClick={() => { handleDeleteBusiness(businessToDelete.id); setShowDeleteBusinessModal(false); }}>
             Delete
           </Button>
         </Modal.Footer>
@@ -310,7 +321,7 @@ function MyBusinesses() {
           <Modal.Title>{isEditingBranch ? 'Edit Branch' : 'Add Branch'}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {error && <Alert variant="danger">{error}</Alert>}
+          {error && <Alert variant="btn btn-outline-danger">{error}</Alert>}
           <Form onSubmit={handleBranchSubmit}>
             <Form.Group className="mb-3" controlId="branchName">
               <Form.Label>Name</Form.Label>
@@ -391,7 +402,7 @@ function MyBusinesses() {
           <Button variant="secondary" onClick={() => setShowDeleteBranchModal(false)}>
             Cancel
           </Button>
-          <Button variant="danger" onClick={() => { handleDeleteBranch(branchToDelete.id, branchToDelete.business_id); setShowDeleteBranchModal(false); }}>
+          <Button variant="btn btn-outline-danger" onClick={() => { handleDeleteBranch(branchToDelete.id, branchToDelete.business_id); setShowDeleteBranchModal(false); }}>
             Delete
           </Button>
         </Modal.Footer>

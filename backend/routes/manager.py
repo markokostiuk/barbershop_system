@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from functools import wraps
 from models import db, Admin, Branch, Position, Service, ServiceCost, Worker, WorkerWorkHours
 from datetime import time, datetime, timedelta
+from werkzeug.security import generate_password_hash
 
 manager_bp = Blueprint('manager', __name__)
 
@@ -57,6 +58,7 @@ def manage_workers():
         return jsonify([{
             'id': w.id,
             'name': w.name,
+            'email':w.email,
             'position': {
                 'id': w.position.id,
                 'name': w.position.name
@@ -68,18 +70,22 @@ def manage_workers():
         try:
             name = data['name']
             position_id = data['position_id']
+            email = data['email']
+            password = data['password']
+            hashed_password = generate_password_hash(password)
             branch_id = admin.branch_id
             # Check access to branch
             branch = Branch.query.filter(Branch.id == branch_id, Branch.managers.any(id=admin.id)).first()
             position = Position.query.filter(Position.id == position_id).first()
             if not branch:
                 return jsonify({'error': 'Access denied to this branch'}), 403
-            new_worker = Worker(name=name, position_id=position_id, branch_id=branch_id)
+            new_worker = Worker(name=name, position_id=position_id, branch_id=branch_id, email=email, password=hashed_password)
             db.session.add(new_worker)
             db.session.commit()
             return jsonify({
                 'id': new_worker.id,
                 'name': new_worker.name,
+                'email':new_worker.email,
                 'position': {
                     'id': new_worker.position.id,
                     'name': new_worker.position.name

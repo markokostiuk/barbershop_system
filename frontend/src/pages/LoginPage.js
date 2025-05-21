@@ -21,7 +21,9 @@ function LoginPage() {
         navigate('/manager/appointments');
       } else if (data.role === 'developer') {
         navigate('/developer/ownercreate');
-      } else {
+      } else if (data.role === 'worker') {
+        navigate('/worker/myappointments');
+      }  else {
         navigate('/login');
       }
     } catch (err) {
@@ -33,7 +35,7 @@ function LoginPage() {
   return (
     <Container className="d-flex justify-content-center align-items-center vh-100">
       <Card style={{ maxWidth: 400, width: '100%' }} className="p-4 shadow">
-        <Card.Title className="text-center mb-4">Admin Login</Card.Title>
+        <Card.Title className="text-center mb-4">Sign in</Card.Title>
         <Form onSubmit={handleSubmit}>
           <Form.Group className="mb-3" controlId="email">
             <Form.Label>Email address</Form.Label>
@@ -57,7 +59,7 @@ function LoginPage() {
           </Form.Group>
           {error && <Alert variant="danger">{error}</Alert>}
           <Button variant="primary" type="submit" className="w-100">
-            Login
+          Sign in
           </Button>
         </Form>
       </Card>

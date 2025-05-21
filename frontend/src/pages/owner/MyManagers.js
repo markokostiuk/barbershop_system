@@ -130,14 +130,14 @@ function MyManagers() {
         <Row>
           <Col>
             <h2>My managers</h2>
-            {error && <Alert variant="danger">{error}</Alert>}
+            {error && <Alert variant="btn btn-outline-danger">{error}</Alert>}
             <Button variant="primary" onClick={() => handleManagerModalOpen()} className="mb-4">
               Register new manager
             </Button>
             {loading ? (
-              <div className="text-center">Загрузка...</div>
+              <div className="text-center">Loading...</div>
             ) : managers.length === 0 ? (
-              <Alert variant="info">There are no managers yet.</Alert>
+              <Alert variant="btn btn-outline-primary">There are no managers yet.</Alert>
             ) : (
               <Row>
                 {managers.map(manager => (
@@ -152,10 +152,10 @@ function MyManagers() {
                           </Card.Text>
                         </div>
                         <div>
-                          <Button variant="info" onClick={() => handleManagerModalOpen(manager)} className="me-2 mb-2">
+                          <Button variant="btn btn-outline-primary" onClick={() => handleManagerModalOpen(manager)} className="me-2 mb-2">
                             Edit
                           </Button>
-                          <Button variant="danger" onClick={() => handleDeleteModalOpen(manager.id)}>
+                          <Button variant="btn btn-outline-danger" onClick={() => handleDeleteModalOpen(manager.id)}>
                             Delete
                           </Button>
                         </div>
@@ -172,10 +172,10 @@ function MyManagers() {
       {/* Manager Modal */}
       <Modal show={showManagerModal} onHide={handleManagerModalClose}>
         <Modal.Header closeButton>
-          <Modal.Title>{isEditingManager ? 'Edit manager data' : 'Register new meneger'}</Modal.Title>
+          <Modal.Title>{isEditingManager ? 'Edit manager data' : 'Register new manager'}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {error && <Alert variant="danger">{error}</Alert>}
+          {error && <Alert variant="btn btn-outline-danger">{error}</Alert>}
           <Form onSubmit={handleManagerSubmit}>
             <Form.Group className="mb-3" controlId="managerEmail">
               <Form.Label>Email</Form.Label>
@@ -245,7 +245,7 @@ function MyManagers() {
           <Button variant="secondary" onClick={handleDeleteModalClose}>
             Deny
           </Button>
-          <Button variant="danger" onClick={handleDeleteManager} disabled={loading}>
+          <Button variant="btn btn-outline-danger" onClick={handleDeleteManager} disabled={loading}>
             {loading ? 'Deleting...' : 'Delete'}
           </Button>
         </Modal.Footer>
