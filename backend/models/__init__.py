@@ -9,13 +9,13 @@ business_owners = db.Table(
     extend_existing=True
 )
 
-# Removed branch_managers association table to enforce one branch per manager
-# branch_managers = db.Table(
-#     'branch_managers',
-#     db.Column('branch_id', db.Integer, db.ForeignKey('branches.id'), primary_key=True),
-#     db.Column('admin_id', db.Integer, db.ForeignKey('admins.id'), primary_key=True),
-#     extend_existing=True
-# )
+
+
+
+
+
+
+
 
 from .business import Business
 from .admin import Admin

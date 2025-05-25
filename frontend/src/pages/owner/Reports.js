@@ -127,7 +127,7 @@ function Reports() {
                   const now = new Date();
                   let start, end;
 
-                  // Helper to format date as yyyy-mm-dd
+
                   const formatDate = (date) => {
                     const y = date.getFullYear();
                     const m = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -145,7 +145,7 @@ function Reports() {
                       end = new Date(start);
                       break;
                     case 'current_week':
-                      // week starts on Monday
+
                       const day = now.getDay() || 7;
                       start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day + 1);
                       end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - day));

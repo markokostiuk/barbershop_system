@@ -27,7 +27,7 @@ def manager_required(f):
 
 def check_branch_access(branch_id):
     admin = get_current_admin()
-    # Check if admin manages the branch
+
     branch = Branch.query.filter(Branch.id == branch_id, Branch.managers.any(id=admin.id)).first()
     if not branch:
         return jsonify({'error': 'Access denied to this branch'}), 403
@@ -44,13 +44,13 @@ def get_branches():
     } for p in positions])
 
 
-# -------------------- Worker Work Hours Routes --------------------
+
 @manager_bp.route('/workers', methods=['GET', 'POST'])
 @manager_required
 def manage_workers():
     admin = get_current_admin()
     if request.method == 'GET':
-        # List workers for branches managed by this manager
+
         branches = Branch.query.filter(Branch.managers.any(id=admin.id)).all()
         branch_ids = [b.id for b in branches]
 
@@ -75,7 +75,7 @@ def manage_workers():
             password = data['password']
             hashed_password = generate_password_hash(password)
             branch_id = admin.branch_id
-            # Check access to branch
+
             branch = Branch.query.filter(Branch.id == branch_id, Branch.managers.any(id=admin.id)).first()
             position = Position.query.filter(Position.id == position_id).first()
             if not branch:
@@ -243,7 +243,7 @@ def add_batch_work_hours(worker_id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
-# New endpoint to get appointments for manager's branch
+
 @manager_bp.route('/appointments', methods=['GET'])
 @manager_required
 def get_appointments():
@@ -277,7 +277,7 @@ def get_appointments():
         })
     return jsonify(result)
 
-# New endpoint to update appointment status by manager
+
 @manager_bp.route('/appointments/<int:appointment_id>/status', methods=['PUT'])
 @manager_required
 def update_appointment_status(appointment_id):
@@ -287,7 +287,7 @@ def update_appointment_status(appointment_id):
 
     appointment = Appointment.query.get_or_404(appointment_id)
 
-    # Check if appointment belongs to manager's branch
+
     if appointment.branch_id != admin.branch_id:
         return jsonify({'error': 'Access denied to this appointment'}), 403
 

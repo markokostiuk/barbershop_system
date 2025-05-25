@@ -40,12 +40,12 @@ function Workers() {
   const [loadingWorkers, setLoadingWorkers] = useState(false);
   const [loadingWorkHours, setLoadingWorkHours] = useState(false);
 
-  // Filter state for work hours
+
   const [filterStartDate, setFilterStartDate] = useState('');
   const [filterEndDate, setFilterEndDate] = useState('');
   const [filteredWorkHours, setFilteredWorkHours] = useState([]);
 
-  // Modals and form states
+
   const [showWorkerModal, setShowWorkerModal] = useState(false);
   const [workerFormData, setWorkerFormData] = useState({ id: null, name: '', position_id: null, email: '', password: ''});
   const [positions, setPositions] = useState([]);
@@ -62,14 +62,14 @@ function Workers() {
   const [batchWorkHours, setBatchWorkHours] = useState({}); // { date: { start_work_hour, end_work_hour } }
 
   useEffect(() => {
-    // Set default filter to current month on load
+
     const [start, end] = getCurrentMonthDateRange();
     setFilterStartDate(start);
     setFilterEndDate(end);
   }, []);
 
   useEffect(() => {
-    // Fetch workers on component mount
+
     const fetchWorkers = async () => {
       setLoadingWorkers(true);
       try {
@@ -88,7 +88,7 @@ function Workers() {
   }, []);
 
   useEffect(() => {
-    // Fetch work hours when selectedWorker changes
+
     const fetchWorkHours = async () => {
       if (!selectedWorker) {
         setWorkHours({});
@@ -118,11 +118,11 @@ function Workers() {
     }
   }, [selectedWorker, filterStartDate, filterEndDate, workHours]);
 
-  // Worker handlers
+
   const handleWorkerModalOpen = (worker = null) => {
     if (worker) {
-      // Find position id from positions list by matching position id instead of name
-      // const positionObj = positions.find(p => p.position.id === worker.position_id);
+
+
       setWorkerFormData({ id: worker.id, name: worker.name, position_id: worker.position.id ? worker.position.id : null , email: worker.email});
       console.log(workerFormData);
       setIsEditingWorker(true);
@@ -161,7 +161,7 @@ function Workers() {
       return;
     }
     try {
-      // Prepare data with position_id instead of position name
+
       const submitData = {
         id: workerFormData.id,
         name: workerFormData.name,
@@ -194,7 +194,7 @@ function Workers() {
     }
   };
 
-  // Work hour handlers
+
   const handleWorkHourModalOpen = (workHour = null) => {
     if (workHour) {
       setWorkHourFormData({
@@ -269,14 +269,14 @@ function Workers() {
     }
   };
 
-  // Batch work hours handlers
+
   const handleBatchStartDateChange = (e) => {
     const startDate = e.target.value;
     setBatchStartDate(startDate);
     if (batchEndDate && startDate <= batchEndDate) {
       const dates = getDatesInRange(startDate, batchEndDate);
       setBatchDates(dates);
-      // Initialize batchWorkHours for new dates
+
       const newBatchWorkHours = {};
       dates.forEach(date => {
         newBatchWorkHours[date] = batchWorkHours[date] || { start_work_hour: '', end_work_hour: '' };
@@ -294,7 +294,7 @@ function Workers() {
     if (batchStartDate && batchStartDate <= endDate) {
       const dates = getDatesInRange(batchStartDate, endDate);
       setBatchDates(dates);
-      // Initialize batchWorkHours for new dates
+
       const newBatchWorkHours = {};
       dates.forEach(date => {
         newBatchWorkHours[date] = batchWorkHours[date] || { start_work_hour: '', end_work_hour: '' };
@@ -317,7 +317,7 @@ function Workers() {
   };
 
   const handleBatchWorkHoursSubmit = async () => {
-    // Validate all entries
+
     for (const date of batchDates) {
       const wh = batchWorkHours[date];
       if (!wh.start_work_hour || !wh.end_work_hour) {
@@ -334,7 +334,7 @@ function Workers() {
           end_work_hour: wh.end_work_hour
         });
       }
-      // Refresh work hours
+
       const data = await getWorkHours(selectedWorker);
       setWorkHours(prev => ({ ...prev, [selectedWorker]: data }));
       setShowBatchWorkHoursModal(false);
@@ -457,7 +457,7 @@ function Workers() {
           </Col>
         </Row>
 
-        {/* Worker Modal */}
+
         <Modal show={showWorkerModal} onHide={handleWorkerModalClose}>
           <Modal.Header closeButton>
             <Modal.Title>{isEditingWorker ? 'Edit Worker' : 'Add Worker'}</Modal.Title>
@@ -519,7 +519,7 @@ function Workers() {
           </Modal.Body>
         </Modal>
 
-        {/* Work Hour Modal */}
+
         <Modal show={showWorkHourModal} onHide={handleWorkHourModalClose}>
           <Modal.Header closeButton>
             <Modal.Title>{isEditingWorkHour ? 'Edit Work Hour' : 'Add Work Hour'}</Modal.Title>
@@ -563,7 +563,7 @@ function Workers() {
           </Modal.Body>
         </Modal>
 
-        {/* Batch Work Hours Modal */}
+
         <Modal show={showBatchWorkHoursModal} onHide={() => setShowBatchWorkHoursModal(false)}>
           <Modal.Header closeButton>
             <Modal.Title>Add Batch Work Hours</Modal.Title>

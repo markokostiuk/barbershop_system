@@ -15,7 +15,7 @@ function MyAppointments() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Set today's date as default filter on load
+
   useEffect(() => {
     const today = new Date().toISOString().slice(0, 10);
     setStartDateFilter(today);
@@ -27,7 +27,7 @@ function MyAppointments() {
       setLoading(true);
       try {
         const data = await getAppointments();
-        // Sort appointments by datetime ascending
+
         data.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
         setAppointments(data);
         setFilteredAppointments(data);

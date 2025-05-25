@@ -50,9 +50,9 @@ def developer_required(f):
 
 def check_branch_access(branch_id):
     admin = get_current_admin()
-    
+
     if admin.role == 'owner':
-        # Check if admin owns the business that the branch belongs to
+
         branch = Branch.query.get(branch_id)
         if not branch:
             return jsonify({'error': 'Branch not found'}), 404
@@ -62,7 +62,7 @@ def check_branch_access(branch_id):
         if not business:
             return jsonify({'error': 'Access denied to this branch'}), 403
     elif admin.role == 'manager':
-        # Check if admin manages the branch
+
         branch = Branch.query.filter(Branch.id == branch_id, Branch.managers.any(id=admin.id)).first()
         if not branch:
             return jsonify({'error': 'Access denied to this branch'}), 403
@@ -137,14 +137,14 @@ def admin_login_post():
 def create_business():
     admin = get_current_admin()
     data = request.get_json()
-    
+
     try:
         new_business = Business(
             name=data['name']
         )
         db.session.add(new_business)
         db.session.commit()
-        # Associate the current admin as an owner of the new business
+
         new_business.owners.append(admin)
         db.session.commit()
         return jsonify({'message': 'Business created', 'id': new_business.id}), 201
@@ -152,7 +152,7 @@ def create_business():
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
-# Получение всех бизнесов владельца
+
 @admin_bp.route('/businesses', methods=['GET'])
 @owner_required
 def get_businesses():
@@ -163,33 +163,33 @@ def get_businesses():
         'name': b.name
     } for b in businesses])
 
-# Обновление бизнеса
+
 @admin_bp.route('/businesses/<int:business_id>', methods=['PUT'])
 @owner_required
 def update_business(business_id):
     admin = get_current_admin()
     business = Business.query.filter(Business.id == business_id, Business.owners.any(id=admin.id)).first_or_404()
-    
+
     data = request.get_json()
     if 'name' in data:
         if Business.query.filter(Business.name == data['name'], Business.id != business_id).first():
             return jsonify({'error': 'Business name already exists'}), 400
         business.name = data['name']
-    
+
     db.session.commit()
     return jsonify({'message': 'Business updated'})
 
-# Удаление бизнеса (каскадное)
+
 @admin_bp.route('/businesses/<int:business_id>', methods=['DELETE'])
 @owner_required
 def delete_business(business_id):
     admin = get_current_admin()
     business = Business.query.filter(Business.id == business_id, Business.owners.any(id=admin.id)).first_or_404()
-    
-    # Проверка связанных сущностей
+
+
     if len(business.branches) > 0:
         return jsonify({'error': 'Delete branches first'}), 400
-    
+
     db.session.delete(business)
     db.session.commit()
     return jsonify({'message': 'Business deleted'})
@@ -199,7 +199,7 @@ def delete_business(business_id):
 @owner_required
 def create_branch(business_id):
     admin = get_current_admin()
-    # Check if admin is an owner of the business
+
     business = Business.query.filter(Business.id == business_id, Business.owners.any(id=admin.id)).first()
     if not business:
         return jsonify({'error': 'Access denied'}), 403
@@ -217,7 +217,7 @@ def create_branch(business_id):
         )
         db.session.add(new_branch)
         db.session.commit()
-        # Optionally associate managers if provided
+
         manager_ids = data.get('manager_ids', [])
         for manager_id in manager_ids:
             manager = Admin.query.filter_by(id=manager_id, role='manager').first()
@@ -230,7 +230,7 @@ def create_branch(business_id):
         return jsonify({'error': str(e)}), 400
 
 
-# Получение всех филиалов бизнеса
+
 @admin_bp.route('/businesses/<int:business_id>/branches', methods=['GET'])
 @owner_required
 def get_branches(business_id):
@@ -248,49 +248,49 @@ def get_branches(business_id):
     } for b in branches])
 
 
-# Обновление филиала
+
 @admin_bp.route('/branches/<int:branch_id>', methods=['PUT'])
 @manager_or_owner_required
 def update_branch(branch_id):
     error = check_branch_access(branch_id)
     if error: return error
-    
+
     branch = Branch.query.get_or_404(branch_id)
     data = request.get_json()
-    
-    # Валидация времени работы
+
+
     if 'start_work_hour' in data and 'end_work_hour' in data:
         start = time.fromisoformat(data['start_work_hour'])
         end = time.fromisoformat(data['end_work_hour'])
         if start >= end:
             return jsonify({'error': 'Invalid work hours'}), 400
-        
-    # Обновление полей
+
+
     for field in ['name', 'locality', 'address', 'phone_number']:
         if field in data:
             setattr(branch, field, data[field])
-    # Convert time strings to time objects for start_work_hour and end_work_hour
+
     if 'start_work_hour' in data:
         branch.start_work_hour = time.fromisoformat(data['start_work_hour'])
     if 'end_work_hour' in data:
         branch.end_work_hour = time.fromisoformat(data['end_work_hour'])
-    
+
     db.session.commit()
     return jsonify({'message': 'Branch updated'})
 
 
-# Удаление филиала
+
 @admin_bp.route('/branches/<int:branch_id>', methods=['DELETE'])
 @manager_or_owner_required
 def delete_branch(branch_id):
     error = check_branch_access(branch_id)
     if error: return error
-    
+
     branch = Branch.query.get_or_404(branch_id)
-    
+
     if len(branch.workers) > 0:
         return jsonify({'error': 'Delete workers first'}), 400
-    
+
     db.session.delete(branch)
     db.session.commit()
     return jsonify({'message': 'Branch deleted'})
@@ -316,13 +316,13 @@ def create_position(branch_id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
-# Получение всех позиций филиала
+
 @admin_bp.route('/branches/<int:branch_id>/positions', methods=['GET'])
 @manager_or_owner_required
 def get_positions(branch_id):
     error = check_branch_access(branch_id)
     if error: return error
-    
+
     positions = Position.query.filter_by(branch_id=branch_id).all()
     return jsonify([{
         'id': p.id,
@@ -330,34 +330,34 @@ def get_positions(branch_id):
         'workers_count': len(p.workers)
     } for p in positions])
 
-# Обновление позиции
+
 @admin_bp.route('/positions/<int:position_id>', methods=['PUT'])
 @manager_or_owner_required
 def update_position(position_id):
     position = Position.query.get_or_404(position_id)
     error = check_branch_access(position.branch_id)
     if error: return error
-    
+
     data = request.get_json()
     if 'name' in data:
         if Position.query.filter_by(name=data['name'], branch_id=position.branch_id).first():
             return jsonify({'error': 'Position name exists'}), 400
         position.name = data['name']
-    
+
     db.session.commit()
     return jsonify({'message': 'Position updated'})
 
-# Удаление позиции
+
 @admin_bp.route('/positions/<int:position_id>', methods=['DELETE'])
 @manager_or_owner_required
 def delete_position(position_id):
     position = Position.query.get_or_404(position_id)
     error = check_branch_access(position.branch_id)
     if error: return error
-    
+
     if len(position.workers) > 0:
         return jsonify({'error': 'Reassign workers first'}), 400
-    
+
     db.session.delete(position)
     db.session.commit()
     return jsonify({'message': 'Position deleted'})
@@ -384,13 +384,13 @@ def create_service(branch_id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 400
 
-# Получение всех услуг филиала
+
 @admin_bp.route('/branches/<int:branch_id>/services', methods=['GET'])
 @manager_or_owner_required
 def get_services(branch_id):
     error = check_branch_access(branch_id)
     if error: return error
-    
+
     services = Service.query.filter_by(branch_id=branch_id).all()
     return jsonify([{
         'id': s.id,
@@ -399,39 +399,39 @@ def get_services(branch_id):
         'price_options': len(s.service_costs)
     } for s in services])
 
-# Обновление услуги
+
 @admin_bp.route('/services/<int:service_id>', methods=['PUT'])
 @manager_or_owner_required
 def update_service(service_id):
     service = Service.query.get_or_404(service_id)
     error = check_branch_access(service.branch_id)
     if error: return error
-    
+
     data = request.get_json()
     if 'name' in data:
         if Service.query.filter_by(name=data['name'], branch_id=service.branch_id).first():
             return jsonify({'error': 'Service name exists'}), 400
         service.name = data['name']
-    
+
     if 'duration' in data:
         if not isinstance(data['duration'], int) or data['duration'] <= 0:
             return jsonify({'error': 'Invalid duration'}), 400
         service.duration = data['duration']
-    
+
     db.session.commit()
     return jsonify({'message': 'Service updated'})
 
-# Удаление позиции
+
 @admin_bp.route('/services/<int:service_id>', methods=['DELETE'])
 @manager_or_owner_required
 def delete_service(service_id):
     service = Service.query.get_or_404(service_id)
     error = check_branch_access(service.branch_id)
     if error: return error
-    
+
     if len(service.service_costs) > 0:
         return jsonify({'error': 'Reassign services costs first'}), 400
-    
+
     db.session.delete(service)
     db.session.commit()
     return jsonify({'message': 'Service deleted'})
@@ -505,7 +505,7 @@ def get_managers():
         return jsonify({'error': str(e)}), 500
 
 @admin_bp.route('/manager/branches', methods=['GET'])
-@manager_or_owner_required 
+@manager_or_owner_required
 def get_manager_branches():
     try:
         current_user = g.current_user
@@ -583,7 +583,7 @@ def delete_worker(worker_id):
     if error:
         return error
 
-    # Check if worker has work hours
+
     if len(worker.work_hours) > 0:
         return jsonify({'error': 'Delete work hours first'}), 400
 
@@ -591,7 +591,7 @@ def delete_worker(worker_id):
     db.session.commit()
     return jsonify({'message': 'Worker deleted'})
 
-# Управление рабочими часами
+
 @admin_bp.route('/workers/<int:worker_id>/work-hours', methods=['POST', 'GET'])
 @manager_or_owner_required
 def manage_work_hours(worker_id):
@@ -599,47 +599,47 @@ def manage_work_hours(worker_id):
     error = check_branch_access(worker.branch_id)
     if error:
         return error
-    
+
     if request.method == 'POST':
         data = request.get_json()
         try:
-            # Проверка формата даты и времени
+
             date = datetime.strptime(data['date'], '%Y-%m-%d').date()
             start = datetime.strptime(data['start_work_hour'], '%H:%M').time()
             end = datetime.strptime(data['end_work_hour'], '%H:%M').time()
-            
+
             if start >= end:
                 return jsonify({'error': 'Invalid time range'}), 400
-                
-            # Проверка на дублирование
+
+
             existing = WorkerWorkHours.query.filter_by(
                 worker_id=worker_id,
                 date=date
             ).first()
-            
+
             if existing:
                 return jsonify({'error': 'Work hours for this date already exist'}), 409
-                
+
             new_wh = WorkerWorkHours(
                 worker_id=worker_id,
                 date=date,
                 start_work_hour=start,
                 end_work_hour=end
             )
-            
+
             db.session.add(new_wh)
             db.session.commit()
-            
+
             return jsonify({
                 'id': new_wh.id,
                 'date': new_wh.date.isoformat(),
                 'start': new_wh.start_work_hour.strftime('%H:%M'),
                 'end': new_wh.end_work_hour.strftime('%H:%M')
             }), 201
-            
+
         except ValueError:
             return jsonify({'error': 'Invalid date/time format'}), 400
-            
+
     elif request.method == 'GET':
         work_hours = WorkerWorkHours.query.filter_by(worker_id=worker_id).all()
         return jsonify([{
@@ -649,7 +649,7 @@ def manage_work_hours(worker_id):
             'end': wh.end_work_hour.strftime('%H:%M')
         } for wh in work_hours])
 
-# Обновление/удаление рабочих часов
+
 @admin_bp.route('/work-hours/<int:work_hour_id>', methods=['PUT', 'DELETE'])
 @manager_or_owner_required
 def modify_work_hour(work_hour_id):
@@ -658,7 +658,7 @@ def modify_work_hour(work_hour_id):
     error = check_branch_access(worker.branch_id)
     if error:
         return error
-    
+
     if request.method == 'PUT':
         data = request.get_json()
         try:
@@ -666,21 +666,21 @@ def modify_work_hour(work_hour_id):
                 wh.start_work_hour = datetime.strptime(data['start_work_hour'], '%H:%M').time()
             if 'end_work_hour' in data:
                 wh.end_work_hour = datetime.strptime(data['end_work_hour'], '%H:%M').time()
-            
+
             if wh.start_work_hour >= wh.end_work_hour:
                 return jsonify({'error': 'Invalid time range'}), 400
-                
+
             db.session.commit()
             return jsonify({'message': 'Work hours updated'})
-            
+
         except ValueError:
             return jsonify({'error': 'Invalid time format'}), 400
-            
+
     elif request.method == 'DELETE':
         db.session.delete(wh)
         db.session.commit()
         return jsonify({'message': 'Work hours deleted'})
-    
+
 @admin_bp.route('/workers/<int:worker_id>/batch-work-hours', methods=['POST'])
 @manager_or_owner_required
 def add_batch_work_hours(worker_id):
@@ -688,22 +688,22 @@ def add_batch_work_hours(worker_id):
     error = check_branch_access(worker.branch_id)
     if error:
         return error
-    
+
     data = request.get_json()
     try:
         start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
         end_date = datetime.strptime(data['end_date'], '%Y-%m-%d').date()
         days_of_week = data.get('days_of_week', [0,1,2,3,4]) # 0-понедельник
-        
+
         current_date = start_date
         while current_date <= end_date:
             if current_date.weekday() in days_of_week:
-                # Проверка существующей записи
+
                 if not WorkerWorkHours.query.filter_by(
                     worker_id=worker_id,
                     date=current_date
                 ).first():
-                    
+
                     new_wh = WorkerWorkHours(
                         worker_id=worker_id,
                         date=current_date,
@@ -711,12 +711,12 @@ def add_batch_work_hours(worker_id):
                         end_work_hour=datetime.strptime(data['end_time'], '%H:%M').time()
                     )
                     db.session.add(new_wh)
-            
+
             current_date += timedelta(days=1)
-        
+
         db.session.commit()
         return jsonify({'message': 'Batch hours added'}), 201
-        
+
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 400

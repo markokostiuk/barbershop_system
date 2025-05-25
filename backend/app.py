@@ -1,7 +1,7 @@
 import sys
 import os
 
-# Add the backend directory to sys.path for imports
+
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from flask import Flask, jsonify
@@ -22,7 +22,7 @@ def create_app():
     CORS(app, resources={r"/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000"]}}, supports_credentials=True)
     app.config.from_object(Config)
 
-    # Ensure JWT_SECRET_KEY is set to SECRET_KEY
+
     app.config['JWT_SECRET_KEY'] = app.config['SECRET_KEY']
 
     jwt = JWTManager(app)

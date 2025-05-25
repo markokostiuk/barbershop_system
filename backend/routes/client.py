@@ -41,13 +41,13 @@ def get_workers_by_branch_and_service(branch_id, service_id):
     workers = Worker.query.filter_by(branch_id=branch_id).all()
 
     if position_id:
-        # Filter workers by position_id if provided
+
         filtered_workers = [w for w in workers if w.position_id == position_id]
     else:
-        # Get positions linked to the service via ServiceCost
+
         service_costs = ServiceCost.query.filter_by(service_id=service_id).all()
         position_ids_for_service = {sc.position_id for sc in service_costs}
-        # Filter workers whose position is linked to the service
+
         filtered_workers = [w for w in workers if w.position_id in position_ids_for_service]
 
     result = []
@@ -82,7 +82,7 @@ def get_services_by_worker(worker_id):
     if not worker:
         return jsonify({'error': 'Worker not found'}), 404
 
-    # Get services linked to worker's position via ServiceCost
+
     service_costs = ServiceCost.query.filter_by(position_id=worker.position_id).all()
     services = []
     for sc in service_costs:
@@ -116,7 +116,7 @@ def get_available_slots(worker_id, service_id):
     if not service:
         return jsonify({'error': 'Service not found'}), 404
 
-    # Get work hours for the worker for the next 7 days
+
     today = datetime.today().date()
     now_time = datetime.now().time()
     end_date = today + timedelta(days=7)
@@ -128,7 +128,7 @@ def get_available_slots(worker_id, service_id):
         if not work_hours:
             continue
 
-        # Get all appointments for this worker, service and date
+
         day_start = datetime.combine(single_date, time.min)
         day_end = datetime.combine(single_date, time.max)
         appointments = Appointment.query.filter(
@@ -143,13 +143,13 @@ def get_available_slots(worker_id, service_id):
         for appt in appointments:
             booked_slots.add(appt.datetime.time().strftime('%H:%M'))
 
-        # Calculate all possible slots
+
         all_slots = get_time_slots(work_hours.start_work_hour, work_hours.end_work_hour, service.duration)
 
-        # Filter out booked slots
+
         free_slots = [slot for slot in all_slots if slot not in booked_slots]
 
-        # Filter out past time slots if the date is today
+
         if single_date == today:
             free_slots = [slot for slot in free_slots if datetime.strptime(slot, '%H:%M').time() > now_time]
 
@@ -164,14 +164,14 @@ def get_services_grouped_by_position(branch_id):
     if not branch:
         return jsonify({'error': 'Branch not found'}), 404
 
-    # Get positions for the branch
+
     positions = Position.query.filter_by(branch_id=branch_id).all()
     position_ids = [p.id for p in positions]
 
-    # Get service costs for these positions
+
     service_costs = ServiceCost.query.filter(ServiceCost.position_id.in_(position_ids)).all()
 
-    # Group services by position
+
     result = {}
     for sc in service_costs:
         if sc.position_id not in result:
@@ -185,7 +185,7 @@ def get_services_grouped_by_position(branch_id):
                 'price': sc.price
             })
 
-    # Prepare response grouped by position name
+
     response = []
     for position in positions:
         response.append({

@@ -169,7 +169,7 @@ function MyManagers() {
         </Row>
       </Container>
 
-      {/* Manager Modal */}
+
       <Modal show={showManagerModal} onHide={handleManagerModalClose}>
         <Modal.Header closeButton>
           <Modal.Title>{isEditingManager ? 'Edit manager data' : 'Register new manager'}</Modal.Title>
@@ -233,7 +233,7 @@ function MyManagers() {
         </Modal.Body>
       </Modal>
 
-      {/* Delete Confirmation Modal */}
+
       <Modal show={showDeleteModal} onHide={handleDeleteModalClose}>
         <Modal.Header closeButton>
           <Modal.Title>Submit deleting</Modal.Title>

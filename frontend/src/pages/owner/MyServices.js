@@ -15,7 +15,7 @@ function MyServices() {
 
   const [error, setError] = useState('');
 
-  // Modals and form states
+
   const [showPositionModal, setShowPositionModal] = useState(false);
   const [positionFormData, setPositionFormData] = useState({ id: null, name: '' });
   const [isEditingPosition, setIsEditingPosition] = useState(false);
@@ -95,7 +95,7 @@ function MyServices() {
     }
   };
 
-  // Position handlers
+
   const handlePositionModalOpen = (position = null) => {
     if (position) {
       setPositionFormData({ id: position.id, name: position.name });
@@ -145,7 +145,7 @@ function MyServices() {
     }
   };
 
-  // Service handlers
+
   const handleServiceModalOpen = (service = null) => {
     if (service) {
       setServiceFormData({ id: service.id, name: service.name, duration: service.duration });
@@ -200,7 +200,7 @@ function MyServices() {
     }
   };
 
-  // ServiceCost handlers
+
   const handleServiceCostModalOpen = (serviceCost = null) => {
     if (serviceCost) {
       setServiceCostFormData({ id: serviceCost.id, position_id: serviceCost.position_id , service_id: serviceCost.service_id, price: serviceCost.price});
@@ -262,7 +262,7 @@ function MyServices() {
     }
   };
 
-  // When a position is selected, load its service costs
+
   const handlePositionSelect = (positionId) => {
     loadServiceCosts(positionId);
   };
@@ -392,7 +392,7 @@ function MyServices() {
           </>
         )}
 
-        {/* Position Modal */}
+
         <Modal show={showPositionModal} onHide={handlePositionModalClose}>
           <Modal.Header closeButton>
             <Modal.Title>{isEditingPosition ? 'Edit Position' : 'Add Position'}</Modal.Title>
@@ -417,7 +417,7 @@ function MyServices() {
           </Modal.Body>
         </Modal>
 
-        {/* Service Modal */}
+
         <Modal show={showServiceModal} onHide={handleServiceModalClose}>
           <Modal.Header closeButton>
             <Modal.Title>{isEditingService ? 'Edit Service' : 'Add Service'}</Modal.Title>
@@ -453,7 +453,7 @@ function MyServices() {
           </Modal.Body>
         </Modal>
 
-        {/* Service Cost Modal */}
+
         <Modal show={showServiceCostModal} onHide={handleServiceCostModalClose}>
           <Modal.Header closeButton>
             <Modal.Title>{isEditingServiceCost ? 'Edit Service Cost' : 'Add Service Cost'}</Modal.Title>

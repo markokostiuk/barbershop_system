@@ -7,7 +7,7 @@ import axios from 'axios'; // Import axios for direct API calls
 
 function MyBusinesses() {
   const [businesses, setBusinesses] = useState([]);
-  const [branchesMap, setBranchesMap] = useState({});
+  const [branchesMap, setBranchesMap] = useState();
   const [expandedBusiness, setExpandedBusiness] = useState(null);
   const [showBusinessModal, setShowBusinessModal] = useState(false);
   const [showBranchModal, setShowBranchModal] = useState(false);
@@ -157,7 +157,7 @@ function MyBusinesses() {
       if (isEditingBranch) {
         await updateBranch(branchFormData.id, branchFormData);
       } else if (expandedBusiness) {
-        // Create a new branch for the selected business
+
         await createBranch(expandedBusiness, branchFormData);
       } else {
         setError('No business selected for branch creation');
@@ -280,11 +280,11 @@ function MyBusinesses() {
             )}
           </Col>
         </Row>
-        
+
 
       </Container>
 
-      {/* Business Modal */}
+
       <Modal show={showBusinessModal} onHide={handleBusinessModalClose}>
         <Modal.Header closeButton>
           <Modal.Title>{isEditingBusiness ? 'Edit Business' : 'Add Business'}</Modal.Title>
@@ -309,7 +309,7 @@ function MyBusinesses() {
         </Modal.Body>
       </Modal>
 
-      {/* Delete Business Confirmation Modal */}
+
       <Modal show={showDeleteBusinessModal} onHide={() => setShowDeleteBusinessModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Confirm Delete Business</Modal.Title>
@@ -327,7 +327,7 @@ function MyBusinesses() {
         </Modal.Footer>
       </Modal>
 
-      {/* Branch Modal */}
+
       <Modal show={showBranchModal} onHide={handleBranchModalClose}>
         <Modal.Header closeButton>
           <Modal.Title>{isEditingBranch ? 'Edit Branch' : 'Add Branch'}</Modal.Title>
@@ -402,7 +402,7 @@ function MyBusinesses() {
         </Modal.Body>
       </Modal>
 
-      {/* Delete Branch Confirmation Modal */}
+
       <Modal show={showDeleteBranchModal} onHide={() => setShowDeleteBranchModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Confirm Delete Branch</Modal.Title>

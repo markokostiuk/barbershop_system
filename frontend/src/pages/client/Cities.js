@@ -26,14 +26,14 @@ function Appointments() {
 
   const [businessName, setBusinessName] = useState('');
 
-  // Modal state
+
   const [showModal, setShowModal] = useState(false);
   const [modalStep, setModalStep] = useState(1);
 
-  // Flow selection: 1 = master first, 2 = service first
+
   const [flowType, setFlowType] = useState(null);
 
-  // Selection state
+
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [workers, setWorkers] = useState([]);
   const [selectedWorker, setSelectedWorker] = useState(null);
@@ -44,11 +44,11 @@ function Appointments() {
   const [slotsForDate, setSlotsForDate] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
 
-  // For flow 2: services grouped by position
+
   const [servicesByPosition, setServicesByPosition] = useState([]);
   const [workersForService, setWorkersForService] = useState([]);
 
-  // Appointment form data
+
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [formError, setFormError] = useState('');
@@ -76,7 +76,7 @@ function Appointments() {
     setExpandedCity(prev => (prev === city ? null : city));
   };
 
-  // Modal handlers
+
   const openModal = (branch) => {
     setSelectedBranch(branch);
     setModalStep(1);
@@ -102,7 +102,7 @@ function Appointments() {
     setShowModal(false);
   };
 
-  // Flow selection handler
+
   const handleFlowSelect = async (flow) => {
     setFlowType(flow);
     setModalStep(2);
@@ -120,10 +120,10 @@ function Appointments() {
     setFormSuccess('');
 
     if (flow === 1) {
-      // Flow 1: fetch workers for branch
+
       fetchWorkers(selectedBranch.id);
     } else if (flow === 2) {
-      // Flow 2: fetch services grouped by position for branch
+
       try {
         const data = await getServicesGroupedByPosition(selectedBranch.id);
         setServicesByPosition(data);
@@ -133,7 +133,7 @@ function Appointments() {
     }
   };
 
-  // Fetch workers for branch (flow 1)
+
   const fetchWorkers = async (branchId) => {
     try {
       const data = await getWorkersByBranch(branchId);
@@ -143,7 +143,7 @@ function Appointments() {
     }
   };
 
-  // On worker select (flow 1)
+
   const handleWorkerSelect = async (workerId) => {
     setSelectedWorker(workerId);
     setSelectedService(null);
@@ -161,7 +161,7 @@ function Appointments() {
     }
   };
 
-  // On service select (flow 1)
+
   const handleServiceSelect = async (serviceId) => {
     setSelectedService(serviceId);
     setSelectedDate(null);
@@ -177,7 +177,7 @@ function Appointments() {
     }
   };
 
-  // On service select (flow 2)
+
   const handleServiceSelectFlow2 = async (serviceId, positionId) => {
     setSelectedService(serviceId);
     setSelectedDate(null);
@@ -194,7 +194,7 @@ function Appointments() {
     }
   };
 
-  // On worker select (flow 2)
+
   const handleWorkerSelectFlow2 = async (workerId) => {
     setSelectedWorker(workerId);
     setSelectedDate(null);
@@ -210,9 +210,9 @@ function Appointments() {
     }
   };
 
-  // On date select from calendar
+
   const handleDateChange = (date) => {
-    // Generate date string in local time to match availableSlots keys
+
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
@@ -222,13 +222,13 @@ function Appointments() {
     setSelectedSlot(null);
   };
 
-  // On slot select
+
   const handleSlotSelect = (slot) => {
     setSelectedSlot(slot);
     setModalStep(5);
   };
 
-  // Submit appointment
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -239,6 +239,7 @@ function Appointments() {
       return;
     }
     try {
+      console.log(`${selectedDate}T${selectedSlot}:00`);
       const response = await createAppointment({
         worker_id: selectedWorker,
         service_id: selectedService,
@@ -255,10 +256,10 @@ function Appointments() {
     }
   };
 
-  // Helper to tile calendar dates with available slots
+
   const tileDisabled = ({ date, view }) => {
     if (view === 'month') {
-      // Generate date string in local time to match availableSlots keys
+
       const year = date.getFullYear();
       const month = (date.getMonth() + 1).toString().padStart(2, '0');
       const day = date.getDate().toString().padStart(2, '0');

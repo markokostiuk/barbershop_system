@@ -29,7 +29,7 @@ def owner_required(f):
 
 def check_branch_access(branch_id):
     admin = get_current_admin()
-    # Check if admin owns the business that the branch belongs to
+
     branch = Branch.query.get(branch_id)
     if not branch:
         return jsonify({'error': 'Branch not found'}), 404
@@ -91,7 +91,7 @@ def create_business():
         )
         db.session.add(new_business)
         db.session.commit()
-        # Associate the current admin as an owner of the new business
+
         new_business.owners.append(admin)
         db.session.commit()
         return jsonify({'message': 'Business created', 'id': new_business.id}), 201
@@ -130,7 +130,7 @@ def delete_business(business_id):
     admin = get_current_admin()
     business = Business.query.filter(Business.id == business_id, Business.owners.any(id=admin.id)).first_or_404()
 
-    # Check for related entities
+
     if len(business.branches) > 0:
         return jsonify({'error': 'Delete branches first'}), 400
 
@@ -143,7 +143,7 @@ def delete_business(business_id):
 @owner_required
 def create_branch(business_id):
     admin = get_current_admin()
-    # Check if admin is an owner of the business
+
     business = Business.query.filter(Business.id == business_id, Business.owners.any(id=admin.id)).first()
     if not business:
         return jsonify({'error': 'Access denied'}), 403
@@ -161,7 +161,7 @@ def create_branch(business_id):
         )
         db.session.add(new_branch)
         db.session.commit()
-        # Optionally associate managers if provided
+
         manager_ids = data.get('manager_ids', [])
         for manager_id in manager_ids:
             manager = Admin.query.filter_by(id=manager_id, role='manager').first()
@@ -197,18 +197,18 @@ def update_branch(branch_id):
 
     branch = Branch.query.get_or_404(branch_id)
     data = request.get_json()
-    # Validate work hours
+
     if 'start_work_hour' in data and 'end_work_hour' in data:
         start = time.fromisoformat(data['start_work_hour'])
         end = time.fromisoformat(data['end_work_hour'])
         if start >= end:
             return jsonify({'error': 'Invalid work hours'}), 400
 
-    # Update fields
+
     for field in ['name', 'locality', 'address', 'phone_number']:
         if field in data:
             setattr(branch, field, data[field])
-    # Convert time strings to time objects for start_work_hour and end_work_hour
+
     if 'start_work_hour' in data:
         branch.start_work_hour = time.fromisoformat(data['start_work_hour'])
     if 'end_work_hour' in data:
@@ -251,7 +251,7 @@ def get_managers():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Assign manager to branch
+
 @owner_bp.route('/branches/<int:branch_id>/managers/<int:manager_id>', methods=['POST'])
 @owner_required
 def assign_manager_to_branch(branch_id, manager_id):
@@ -271,12 +271,12 @@ def assign_manager_to_branch(branch_id, manager_id):
     if not manager:
         return jsonify({'error': 'Manager not found'}), 404
 
-    # Assign branch to manager (one branch per manager)
+
     manager.branch = branch
     db.session.commit()
     return jsonify({'message': 'Manager assigned to branch'}), 200
 
-# Delete manager
+
 @owner_bp.route('/managers/<int:manager_id>', methods=['DELETE'])
 @owner_required
 def delete_manager(manager_id):
@@ -288,7 +288,7 @@ def delete_manager(manager_id):
     if not manager:
         return jsonify({'error': 'Manager not found'}), 404
 
-    # Check if manager belongs to a business owned by admin
+
     if manager.branch:
         branch = Branch.query.get(manager.branch_id)
         if not branch or not branch.business_id:
@@ -315,17 +315,17 @@ def update_manager(manager_id):
     return jsonify({'message': 'Business updated'})
 
 
-# New routes for managing positions, services, and service costs
+
 
 from flask import request, jsonify
 from models import Position, Service, ServiceCost
 
-# Positions CRUD
+
 @owner_bp.route('/branches/<int:branch_id>/positions', methods=['GET'])
 @owner_required
 def get_positions(branch_id):
     admin = get_current_admin()
-    # Check branch ownership
+
     branch = Branch.query.get_or_404(branch_id)
     if not branch.business_id:
         return jsonify({'error': 'Branch business not set'}), 400
@@ -394,7 +394,7 @@ def delete_position(position_id):
     db.session.commit()
     return jsonify({'message': 'Position deleted'})
 
-# Services CRUD
+
 @owner_bp.route('/branches/<int:branch_id>/services', methods=['GET'])
 @owner_required
 def get_services(branch_id):
@@ -469,7 +469,7 @@ def delete_service(service_id):
     db.session.commit()
     return jsonify({'message': 'Service deleted'})
 
-# ServiceCosts CRUD
+
 @owner_bp.route('/branches/<int:branch_id>/service_costs', methods=['GET'])
 @owner_required
 def get_service_costs_by_branch(branch_id):

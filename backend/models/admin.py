@@ -1,5 +1,5 @@
 from . import db
-# from . import branch_managers
+
 from . import business_owners
 
 class Admin(db.Model):

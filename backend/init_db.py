@@ -1,7 +1,7 @@
 import sys
 import os
 
-# Add the backend directory to sys.path for imports
+
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from app import create_app
@@ -13,7 +13,7 @@ app = create_app()
 with app.app_context():
     db.create_all()
 
-    # Check if developer admin exists
+
     developer = Admin.query.filter_by(email='developer@example.com').first()
     if not developer:
         dev_admin = Admin(
@@ -27,7 +27,7 @@ with app.app_context():
         print("Default developer admin created.")
     else:
         print("Developer admin already exists.")
-    
+
     owner = Admin.query.filter_by(email='initial_owner@example.com').first()
     if not owner:
         owner_admin = Admin(

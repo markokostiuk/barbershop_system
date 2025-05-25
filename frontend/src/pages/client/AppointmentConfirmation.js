@@ -13,7 +13,7 @@ function AppointmentConfirmation() {
   const [error, setError] = useState('');
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
 
-  // Reschedule state
+
   const [availableSlots, setAvailableSlots] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
   const [slotsForDate, setSlotsForDate] = useState([]);
@@ -61,9 +61,9 @@ function AppointmentConfirmation() {
   };
 
   const handleDateChange = (date) => {
-    // Store selectedDate as Date object
+
     setSelectedDate(date);
-    // Generate date string in local time to match availableSlots keys
+
     const year = date.getFullYear();
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
@@ -84,8 +84,14 @@ function AppointmentConfirmation() {
       setActionError('Please select a date and time slot');
       return;
     }
-    const newDatetime = `${selectedDate}T${selectedSlot}:00`;
+
+    const year = selectedDate.getFullYear();
+    const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+    const day = selectedDate.getDate().toString().padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}`;
+    const newDatetime = `${formattedDate}T${selectedSlot}:00`;
     try {
+      console.log(newDatetime);
       await rescheduleAppointment(appointmentId, newDatetime);
       setActionSuccess('Appointment rescheduled successfully');
       setAppointment(prev => ({ ...prev, datetime: newDatetime, status: 'Waiting' }));
@@ -140,7 +146,7 @@ function AppointmentConfirmation() {
     );
   }
 
-  // Determine status message
+
   let statusMessage = '';
   if (appointment.status === 'Waiting' || appointment.status === 'Confirmed') {
     statusMessage = 'We are expecting you';
@@ -152,10 +158,10 @@ function AppointmentConfirmation() {
     statusMessage = `Status: ${appointment.status}`;
   }
 
-  // Format date and time interval
+
   const appointmentDate = new Date(appointment.datetime);
   const startTimeStr = appointmentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  // Assuming service duration is in minutes
+
   const durationMinutes = appointment.service && appointment.service.duration ? appointment.service.duration : 0;
   let endTimeStr = '';
   if (durationMinutes > 0) {
