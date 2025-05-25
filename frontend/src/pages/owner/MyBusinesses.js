@@ -200,6 +200,15 @@ function MyBusinesses() {
     }
   };
 
+  const handleCopy = async (business_id) => {
+    try {
+      await navigator.clipboard.writeText(`http://localhost:3000/cities/${business_id}/`);
+      alert("Copied!");
+    } catch (err) {
+      console.error("Error: ", err);
+    }
+  };
+
   return (
     <div>
       <AdminNavbar role="owner" />
@@ -221,7 +230,7 @@ function MyBusinesses() {
                 <Accordion.Item key={business.id} eventKey={business.id}>
                   <Accordion.Header className="d-flex justify-content-between align-items-center">
                     <b>{business.name}</b>
-                    <div className="ms-auto d-flex align-items-center">
+                    <div className="ms-auto d-flex align-items-center ms-auto">
                       <Button variant="btn btn-outline-primary" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); handleBusinessModalOpen(business); }}>
                         Edit
                       </Button>
@@ -230,6 +239,9 @@ function MyBusinesses() {
                       </Button>
                       <Button variant="primary" size="sm" className="ms-2" onClick={(e) => { e.stopPropagation(); handleBranchModalOpen(null, business.id); }}>
                         Add Branch
+                      </Button>
+                      <Button variant="outline-secondary" size="sm" className="ms-2" onClick={() => handleCopy(business.id)}>
+                        Copy client link
                       </Button>
                     </div>
                   </Accordion.Header>

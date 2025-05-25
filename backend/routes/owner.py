@@ -84,7 +84,7 @@ def register_manager():
 def create_business():
     admin = get_current_admin()
     data = request.get_json()
-    
+
     try:
         new_business = Business(
             name=data['name']
@@ -114,13 +114,13 @@ def get_businesses():
 def update_business(business_id):
     admin = get_current_admin()
     business = Business.query.filter(Business.id == business_id, Business.owners.any(id=admin.id)).first_or_404()
-    
+
     data = request.get_json()
     if 'name' in data:
         if Business.query.filter(Business.name == data['name'], Business.id != business_id).first():
             return jsonify({'error': 'Business name already exists'}), 400
         business.name = data['name']
-    
+
     db.session.commit()
     return jsonify({'message': 'Business updated'})
 
@@ -129,11 +129,11 @@ def update_business(business_id):
 def delete_business(business_id):
     admin = get_current_admin()
     business = Business.query.filter(Business.id == business_id, Business.owners.any(id=admin.id)).first_or_404()
-    
+
     # Check for related entities
     if len(business.branches) > 0:
         return jsonify({'error': 'Delete branches first'}), 400
-    
+
     db.session.delete(business)
     db.session.commit()
     return jsonify({'message': 'Business deleted'})
@@ -194,7 +194,7 @@ def update_branch(branch_id):
     error = check_branch_access(branch_id)
     if error:
         return error
-    
+
     branch = Branch.query.get_or_404(branch_id)
     data = request.get_json()
     # Validate work hours
@@ -203,7 +203,7 @@ def update_branch(branch_id):
         end = time.fromisoformat(data['end_work_hour'])
         if start >= end:
             return jsonify({'error': 'Invalid work hours'}), 400
-        
+
     # Update fields
     for field in ['name', 'locality', 'address', 'phone_number']:
         if field in data:
@@ -213,7 +213,7 @@ def update_branch(branch_id):
         branch.start_work_hour = time.fromisoformat(data['start_work_hour'])
     if 'end_work_hour' in data:
         branch.end_work_hour = time.fromisoformat(data['end_work_hour'])
-    
+
     db.session.commit()
     return jsonify({'message': 'Branch updated'})
 
@@ -223,12 +223,12 @@ def delete_branch(branch_id):
     error = check_branch_access(branch_id)
     if error:
         return error
-    
+
     branch = Branch.query.get_or_404(branch_id)
-    
+
     if len(branch.workers) > 0:
         return jsonify({'error': 'Delete workers first'}), 400
-    
+
     db.session.delete(branch)
     db.session.commit()
     return jsonify({'message': 'Branch deleted'})
@@ -306,11 +306,11 @@ def delete_manager(manager_id):
 def update_manager(manager_id):
     admin = get_current_admin()
     manager = Admin.query.get_or_404(manager_id)
-    
+
     data = request.get_json()
     if 'name' in data:
         manager.name = data['name']
-    
+
     db.session.commit()
     return jsonify({'message': 'Business updated'})
 
@@ -569,4 +569,146 @@ def delete_service_cost(service_cost_id):
     db.session.delete(service_cost)
     db.session.commit()
     return jsonify({'message': 'Service cost deleted'})
+
+# -------------------- Reports Endpoints --------------------
+
+from sqlalchemy import func
+from models import Appointment, Service
+
+@owner_bp.route('/reports/revenue', methods=['GET'])
+@owner_required
+def get_revenue_report():
+    admin = get_current_admin()
+    if not admin:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    business_id = request.args.get('business_id', type=int)
+    branch_id = request.args.get('branch_id', type=int)
+
+    try:
+        start_date = datetime.fromisoformat(start_date_str) if start_date_str else None
+        end_date = datetime.fromisoformat(end_date_str) if end_date_str else None
+    except ValueError:
+        return jsonify({'error': 'Invalid date format'}), 400
+
+    businesses = Business.query.filter(Business.owners.any(id=admin.id)).all()
+    business_ids = [b.id for b in businesses]
+
+    if business_id and business_id not in business_ids:
+        return jsonify({'error': 'Access denied to this business'}), 403
+
+    query = db.session.query(func.sum(ServiceCost.price)).join(ServiceCost.position).join(Position.branch).join(Branch.business).join(Appointment).filter(Appointment.service_id == Service.id)
+
+    query = query.filter(Business.id.in_(business_ids)).filter(Appointment.status != 'Canceled')
+
+    if business_id:
+        query = query.filter(Business.id == business_id)
+    if branch_id:
+        query = query.filter(Branch.id == branch_id)
+    if start_date:
+        query = query.filter(Appointment.datetime >= start_date)
+    if end_date:
+        query = query.filter(Appointment.datetime <= end_date)
+
+    total_revenue = query.scalar() or 0
+
+    return jsonify({'total_revenue': total_revenue})
+
+@owner_bp.route('/reports/clients', methods=['GET'])
+@owner_required
+def get_clients_report():
+    admin = get_current_admin()
+    if not admin:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    business_id = request.args.get('business_id', type=int)
+    branch_id = request.args.get('branch_id', type=int)
+
+    try:
+        start_date = datetime.fromisoformat(start_date_str) if start_date_str else None
+        end_date = datetime.fromisoformat(end_date_str) if end_date_str else None
+    except ValueError:
+        return jsonify({'error': 'Invalid date format'}), 400
+
+    businesses = Business.query.filter(Business.owners.any(id=admin.id)).all()
+    business_ids = [b.id for b in businesses]
+
+    if business_id and business_id not in business_ids:
+        return jsonify({'error': 'Access denied to this business'}), 403
+
+    query = db.session.query(func.count(func.distinct(Appointment.customer_phone)))
+
+    query = query.join(Branch, Appointment.branch_id == Branch.id).join(Business, Branch.business_id == Business.id)
+
+    query = query.filter(Business.id.in_(business_ids)).filter(Appointment.status != 'Canceled')
+
+    if business_id:
+        query = query.filter(Business.id == business_id)
+    if branch_id:
+        query = query.filter(Appointment.branch_id == branch_id)
+    if start_date:
+        query = query.filter(Appointment.datetime >= start_date)
+    if end_date:
+        query = query.filter(Appointment.datetime <= end_date)
+
+    total_clients = query.scalar() or 0
+
+    return jsonify({'total_clients': total_clients})
+
+@owner_bp.route('/reports/services', methods=['GET'])
+@owner_required
+def get_services_report():
+    admin = get_current_admin()
+    if not admin:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    business_id = request.args.get('business_id', type=int)
+    branch_id = request.args.get('branch_id', type=int)
+
+    try:
+        start_date = datetime.fromisoformat(start_date_str) if start_date_str else None
+        end_date = datetime.fromisoformat(end_date_str) if end_date_str else None
+    except ValueError:
+        return jsonify({'error': 'Invalid date format'}), 400
+
+    businesses = Business.query.filter(Business.owners.any(id=admin.id)).all()
+    business_ids = [b.id for b in businesses]
+
+    if business_id and business_id not in business_ids:
+        return jsonify({'error': 'Access denied to this business'}), 403
+
+    query = db.session.query(
+        Service.id,
+        Service.name,
+        func.count(Appointment.id).label('booking_count')
+    ).join(Appointment).join(Branch, Appointment.branch_id == Branch.id).join(Business, Branch.business_id == Business.id)
+
+    query = query.filter(Business.id.in_(business_ids)).filter(Appointment.status != 'Canceled')
+
+    if business_id:
+        query = query.filter(Business.id == business_id)
+    if branch_id:
+        query = query.filter(Appointment.branch_id == branch_id)
+    if start_date:
+        query = query.filter(Appointment.datetime >= start_date)
+    if end_date:
+        query = query.filter(Appointment.datetime <= end_date)
+
+    query = query.group_by(Service.id).order_by(func.count(Appointment.id).desc())
+
+    services = []
+    for service_id, service_name, booking_count in query.all():
+        services.append({
+            'id': service_id,
+            'name': service_name,
+            'booking_count': booking_count
+        })
+
+    return jsonify(services)
 

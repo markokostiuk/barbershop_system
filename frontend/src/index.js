@@ -11,15 +11,24 @@ import Appointments from './pages/manager/Appointments';
 import MyServices from './pages/owner/MyServices';
 import Workers from './pages/manager/Workers';
 import ProtectedRoute from './components/ProtectedRoute';
-import MyAppointments from './pages/worker/MyAppointments'
+import MyAppointments from './pages/worker/MyAppointments';
+import Cities from './pages/client/Cities';
+import AppointmentConfirmation from './pages/client/AppointmentConfirmation';
+import Reports from './pages/owner/Reports';
+import MySchedule from './pages/worker/MySchedule';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/developer/ownercreate" element={<OwnerCreationPage />} />
+        <Route path="cities/:id" element={<Cities />} />
+        <Route path="appointment-confirmation/:appointmentId" element={<AppointmentConfirmation />} />
 
+        <Route
+          path="/developer/ownercreate"
+          element={<ProtectedRoute><OwnerCreationPage /></ProtectedRoute>}
+        />
         <Route
           path="/owner/mybusinesses"
           element={<ProtectedRoute><MyBusinesses /></ProtectedRoute>}
@@ -33,6 +42,10 @@ function App() {
           element={<ProtectedRoute><MyServices /></ProtectedRoute>}
         />
         <Route
+          path="/owner/reports"
+          element={<ProtectedRoute><Reports /></ProtectedRoute>}
+        />
+        <Route
           path="/manager/appointments"
           element={<ProtectedRoute><Appointments /></ProtectedRoute>}
         />
@@ -44,6 +57,11 @@ function App() {
         <Route
           path="/worker/myappointments"
           element={<ProtectedRoute><MyAppointments /></ProtectedRoute>}
+        />
+
+        <Route
+          path="/worker/myschedule"
+          element={<ProtectedRoute><MySchedule /></ProtectedRoute>}
         />
 
         <Route path="*" element={<Navigate to="/login" replace />} />

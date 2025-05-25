@@ -242,3 +242,31 @@ export async function deleteServiceCost(serviceCostId) {
   return response.data;
 }
 
+// Reports API
+export async function getRevenueReport(params) {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.get(`${BASE_URL}/owner/reports/revenue`, {
+    headers: { Authorization: `Bearer ${token}` },
+    params
+  });
+  return response.data;
+}
+
+export async function getClientsReport(params) {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.get(`${BASE_URL}/owner/reports/clients`, {
+    headers: { Authorization: `Bearer ${token}` },
+    params
+  });
+  return response.data;
+}
+
+export async function getServicesReport(params) {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.get(`${BASE_URL}/owner/reports/services`, {
+    headers: { Authorization: `Bearer ${token}` },
+    params
+  });
+  return response.data;
+}
+

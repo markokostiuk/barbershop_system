@@ -12,7 +12,6 @@ export const getBranchPositions = async () => {
   return response.data;
 };
 
-
 // Workers API
 export const getWorkers = async () => {
   const token = localStorage.getItem('access_token');
@@ -99,6 +98,28 @@ export const deleteWorkHour = async (workHourId) => {
 export const addBatchWorkHours = async (workerId, batchData) => {
   const token = localStorage.getItem('access_token');
   const response = await axios.post(`${BASE_URL}/manager/workers/${workerId}/batch-work-hours`, batchData, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+  return response.data;
+};
+
+// Appointments API
+export const getAppointments = async () => {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.get(`${BASE_URL}/manager/appointments`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+  return response.data;
+};
+
+// New API method to update appointment status by manager
+export const updateAppointmentStatus = async (appointmentId, status) => {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.put(`${BASE_URL}/manager/appointments/${appointmentId}/status`, { status }, {
     headers: {
       Authorization: `Bearer ${token}`
     }

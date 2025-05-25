@@ -13,6 +13,7 @@ from routes.auth import auth_bp
 from routes.developer import developer_bp
 from routes.owner import owner_bp
 from routes.manager import manager_bp
+from routes.worker import worker_bp
 
 from flask_jwt_extended import JWTManager
 
@@ -43,6 +44,7 @@ def create_app():
     app.register_blueprint(developer_bp, url_prefix='/developer')
     app.register_blueprint(owner_bp, url_prefix='/owner')
     app.register_blueprint(manager_bp, url_prefix='/manager')
+    app.register_blueprint(worker_bp, url_prefix='/worker')
 
     # Error handlers
     @app.errorhandler(404)

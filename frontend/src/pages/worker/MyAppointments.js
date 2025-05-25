@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Form, Table, Button, Alert, Modal } from 'react-bootstrap';
+import { Container, Row, Col, Form, Table, Button, Alert } from 'react-bootstrap';
 import AdminNavbar from '../../components/Navbar';
-import { getAppointments, updateAppointmentStatus } from '../../api/manager';
+import { getAppointments } from '../../api/worker';
 
 const statusOptions = ['Waiting', 'In-process', 'Finished', 'Canceled'];
 
-function Appointments() {
+function MyAppointments() {
   const role = localStorage.getItem('role');
   const [appointments, setAppointments] = useState([]);
   const [filteredAppointments, setFilteredAppointments] = useState([]);
@@ -14,11 +14,6 @@ function Appointments() {
   const [endDateFilter, setEndDateFilter] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // Modal state
-  const [showModal, setShowModal] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const [newStatus, setNewStatus] = useState('');
 
   // Set today's date as default filter on load
   useEffect(() => {
@@ -79,42 +74,11 @@ function Appointments() {
     setEndDateFilter(today);
   };
 
-  const openModal = (appointment) => {
-    setSelectedAppointment(appointment);
-    setNewStatus(appointment.status);
-    setShowModal(true);
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-    setSelectedAppointment(null);
-    setNewStatus('');
-  };
-
-  const handleStatusChange = (e) => {
-    setNewStatus(e.target.value);
-  };
-
-  const handleUpdateStatus = async () => {
-    if (!selectedAppointment) return;
-    try {
-      await updateAppointmentStatus(selectedAppointment.id, newStatus);
-      // Update local state
-      const updatedAppointments = appointments.map(app =>
-        app.id === selectedAppointment.id ? { ...app, status: newStatus } : app
-      );
-      setAppointments(updatedAppointments);
-      closeModal();
-    } catch (err) {
-      setError('Failed to update appointment status');
-    }
-  };
-
   return (
     <>
       <AdminNavbar role={role} />
       <Container className="mt-5">
-        <h2>Appointments</h2>
+        <h2>My Appointments</h2>
         {error && <Alert variant="danger">{error}</Alert>}
         <Row className="mb-3">
           <Col md={2}>
@@ -173,7 +137,6 @@ function Appointments() {
                 <th>Date</th>
                 <th>Time</th>
                 <th>Status</th>
-                <th>Change Status</th>
               </tr>
             </thead>
             <tbody>
@@ -186,49 +149,14 @@ function Appointments() {
                   <td>{app.datetime.slice(0, 10)}</td>
                   <td>{new Date(app.datetime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
                   <td>{app.status}</td>
-                  <td>
-                    {app.status === 'Canceled' ? (
-                      <Button variant="outline-secondary" size="sm" disabled>
-                        Change
-                      </Button>
-                    ) : (
-                      <Button variant="outline-primary" size="sm" onClick={() => openModal(app)}>
-                        Change
-                      </Button>
-                    )}
-                  </td>
                 </tr>
               ))}
             </tbody>
           </Table>
         )}
       </Container>
-
-      <Modal show={showModal} onHide={closeModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Change Appointment Status</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form.Group controlId="newStatusSelect">
-            <Form.Label>Select new status</Form.Label>
-            <Form.Select value={newStatus} onChange={handleStatusChange}>
-              {statusOptions.map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </Form.Select>
-          </Form.Group>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={closeModal}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleUpdateStatus}>
-            Update Status
-          </Button>
-        </Modal.Footer>
-      </Modal>
     </>
   );
 }
 
-export default Appointments;
+export default MyAppointments;
